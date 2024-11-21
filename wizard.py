@@ -92,11 +92,19 @@ class APIClient:
         )
         response.raise_for_status()
         return response.json()
-
+    
     def get_bank(self, client: str, bank: str) -> List[dict]:
         """Get all questions from a bank."""
         response = requests.get(
             f"{self.base_url}/{client}/{bank}/"
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def get_all_banks(self, client:str):
+        """Get all question banks in a client's database"""
+        response = requests.get(
+            f"{self.base_url}/{client}/banks"
         )
         response.raise_for_status()
         return response.json()
