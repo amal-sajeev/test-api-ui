@@ -42,7 +42,8 @@ class APIClient:
         """
         self.base_url = base_url.rstrip('/')
 
-    # User Management
+    # User Management ==================================================================================
+
     def create_user(self, user: UserCreate) -> str:
         """Create a new user."""
         response = requests.post(
@@ -83,7 +84,15 @@ class APIClient:
         )
         response.raise_for_status()
 
-    # Question Bank Management
+    def get_sessions(self, client:str, user_id: str):
+        """Gets all user sessions"""
+        response = requests.get(
+            f"{self.base_url}/{client}/users/{user_id}/sessions"
+        )
+        return response.json()
+
+    # Question Bank Management ==================================================================================
+
     def create_bank(self, client: str, bank: str) -> dict:
         """Create a new question bank."""
         response = requests.post(
@@ -165,7 +174,15 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    # Assessment Management
+    # Assessment Management ==================================================================================
+
+    def get_assessments(self, client:str, user_id: str):
+        """Gets all user assessment sessions"""
+        response = requests.get(
+            f"{self.base_url}/{client}/users/{user_id}/assessments"
+        )
+        return response.json()
+
     def create_assessment(self, client: str, user_id: str, session_data: dict) -> str:
         """Create a new assessment session."""
         response = requests.post(
@@ -193,6 +210,14 @@ class APIClient:
         return response.json()
 
     # Practice Management
+    
+    def get_practice(self, client:str, user_id: str):
+        """Gets all user practice sessions"""
+        response = requests.get(
+            f"{self.base_url}/{client}/users/{user_id}/practice"
+        )
+        return response.json()
+
     def create_practice(self, client: str, user_id: str, session_data: dict) -> str:
         """Create a new practice session."""
         response = requests.post(
@@ -221,3 +246,39 @@ class APIClient:
         )
         response.raise_for_status()
         return response.json()
+
+    #Quick Sort Paritioning function ==================================================================================
+
+    def partition(q_list, begin, end, key=None):
+        i = begin-1
+        print(q_list)
+        pivot = q_list[end]
+
+        if key:
+            for j in range(begin, end):
+                if(q_list[j][key]<=pivot[key]):
+                    i=i+1
+                    q_list[i], q_list[j] = q_list[j], q_list[i]
+            q_list[i+1], q_list[end] = q_list[end], q_list[i+1]
+        else:
+            for j in range(begin, end):
+                if(q_list[j]<=pivot):
+                    i=i+1
+                    q_list[i], q_list[j] = q_list[j], q_list[i]
+            q_list[i+1], q_list[end] = q_list[end], q_list[i+1]
+        return(i+1)
+
+    #Quick Sort initiation function
+    def quicksorter(q_list, begin, end, key=None):
+        if key:
+            if(begin<end):
+                p = partition(q_list,begin,end, key)
+                q_list = quicksorter(q_list, begin, p-1, key)
+                q_list = quicksorter(q_list, p+1, end, key)
+                return q_list
+        else:
+            if(begin<end):
+                p = partition(q_list,begin,end)
+                q_list = quicksorter(q_list, begin, p-1)
+                q_list = quicksorter(q_list, p+1, end)
+            return q_list

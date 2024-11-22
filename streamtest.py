@@ -2,6 +2,7 @@ import streamlit as st
 import wizard
 from streamlit_cookies_controller import CookieController
 import time
+from datetime import datetime
 
 
 testwizard = wizard.APIClient() 
@@ -42,18 +43,27 @@ with st.sidebar:
     st.write(f" {len(list(i for i in upcoming if i["due"]<0))} cards due, {len(list(i for i in upcoming if i["due"]>0))} upcoming today.")
     if st.button("Logout"):
         logout()
+    with st.container(height=300):
+        st.subheader("Question banks")
+        titles, count, update_butt = st.columns([3.5,1.5,5], vertical_alignment= "center")
+        banks = testwizard.get_all_banks(client)
+        for i in banks:
+            with titles:
+                st.write(i["name"])
+            with count:
+                st.write(i["question_count"])
+            with update_butt:
+                st.button("View/Update", key=i)
 
 st.title("Dashboard")
+with st.container(key="Assessment Sessions"):
+    st.subheader("Assessments",anchor="assessments")
+    colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
+    for i in testwizard.get_assessments(client,st.session_state.user_id):
+        with st.container(key=i["_id"]):
+            st.subheader(i["created"], divider= colour(i["average_score"]) )
+            st.write(f"Assigned: {i["created"]}")
+            st.write(f"Score: {i["total_score"]}/{i["answered"]}")
 
-with st.container(height = 300):
-    st.subheader("Question banks")
-    titles, count, update_butt = st.columns([0.4,0.3,0.3])
-    st.write(testwizard.get_all_banks(client))
-    for i in testwizard.get_all_banks(client):
-        with titles:
-            st.write(i)
-        with count:
-            print(len(testwizard.get_bank(client,i)))
-            st.write(len(testwizard.get_bank(client,i)))
-        with update_butt:
-            st.button("View/Update", key=i)
+with st.container(key = "Practice Sessions"):
+    st.subheader("Practice Sessions", anchor="practice")
