@@ -56,14 +56,27 @@ with st.sidebar:
                 st.button("View/Update", key=i)
 
 st.title("Dashboard")
-with st.container(key="Assessment Sessions"):
-    st.subheader("Assessments",anchor="assessments")
-    colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
-    for i in testwizard.get_assessments(client,st.session_state.user_id):
-        with st.container(key=i["_id"]):
-            st.subheader(i["created"], divider= colour(i["average_score"]) )
-            st.write(f"Assigned: {i["created"]}")
-            st.write(f"Score: {i["total_score"]}/{i["answered"]}")
 
-with st.container(key = "Practice Sessions"):
-    st.subheader("Practice Sessions", anchor="practice")
+
+assessments, practice = st.columns(2)
+
+with assessments:
+    with st.container(key="Assessment Sessions", border=True):
+        st.subheader("Assessments",anchor="assessments")
+        colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
+        for i in testwizard.get_assessments(client,st.session_state.user_id):
+            with st.container(key=i["_id"]):
+                st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["average_score"]) )
+                st.write(datetime.fromisoformat(i["created"]).time())
+                st.write(f"Assigned: {i["created"]}")
+                st.write(f"Score: {i["total_score"]}/{i["answered"]}")
+with practice:
+    with st.container(key = "Practice Sessions", border=True):
+        st.subheader("Practice Sessions", anchor="practice")
+        colour = lambda x : "rainbow" if x>50 else "green" if x>10 else "blue" if x>5 else "grey"
+        for i in testwizard.get_practice(client,st.session_state.user_id):
+            with st.container(key=i["_id"]):
+                st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["answered"]) )
+                st.write(datetime.fromisoformat(i["created"]).time())
+                st.write(f"Time taken: {i["time_taken"]}")
+                st.write(f"Number of questions: {len(i["question_list"])}")
