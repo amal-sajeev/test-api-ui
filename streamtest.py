@@ -3,9 +3,10 @@ import wizard
 from streamlit_cookies_controller import CookieController
 import time
 from datetime import datetime
+from wizard import *
 
 
-testwizard = wizard.APIClient() 
+testwizard = wizard.LearningPlatformClient("http://localhost:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -58,9 +59,12 @@ with st.sidebar:
 
 # ASSESSMENT SCREEN ===========================================================================================
 
-# def assessor(
-
-# )
+def assessor():
+    import streamlit as st
+    import wizard
+    from streamlit_cookies_controller import CookieController
+    
+    st.
 
 # DASHBOARD (MAIN SEGMENT) ====================================================================================
 st.title("Dashboard")
@@ -69,20 +73,31 @@ st.title("Dashboard")
 assessments, practice = st.columns(2)
 
 with assessments:
+    if st.button("Create Assessment"):
+        with st.popover("Create assessment", key="assessment_make"):
+            st.
     with st.container(key="Assessment Sessions", border=True):
         st.subheader("Assessments",anchor="assessments")
         colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
-        for i in testwizard.get_assessments(client,st.session_state.user_id):
+        for i in testwizard.get_user_assessments(client,st.session_state.user_id):
             with st.container(key=i["_id"]):
                 st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["average_score"]) )
                 st.write(datetime.fromisoformat(i["created"]).time())
                 st.write(f"Assigned: {i["created"]}")
                 st.write(f"Score: {i["total_score"]}/{i["answered"]}")
+                if i["answered"] == 0:
+                    if st.button("Start Assessment"):
+                        asession = wizard.Session()
+                        asession.user = st.session_state.user_id
+                        asession.bank = st.selectbox("Select question bank", list(i["names"] for i in banks))
+                        assessor(client, st.session_state.user_id,i["_id"])
+
+
 with practice:
     with st.container(key = "Practice Sessions", border=True):
         st.subheader("Practice Sessions", anchor="practice")
         colour = lambda x : "rainbow" if x>50 else "green" if x>10 else "blue" if x>5 else "grey"
-        for i in testwizard.get_practice(client,st.session_state.user_id):
+        for i in testwizard.get_user_practice_sessions(client,st.session_state.user_id):
             with st.container(key=i["_id"]):
                 st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["answered"]) )
                 st.write(datetime.fromisoformat(i["created"]).time())
