@@ -1,28 +1,41 @@
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
 import requests
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, asdict, field
+from datetime import datetime
+
+class APIClient:
+    def __init__(self, base_url: str):
+        """Base API client with common request handling"""
+        self.base_url = base_url.rstrip('/')
+        self.session = requests.Session()
+
+    def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
+        """Centralized request handling with error management"""
+        full_url = f"{self.base_url}/{endpoint}"
+        try:
+            response = self.session.request(method, full_url, **kwargs)
+            response.raise_for_status()
+            return response.json() if response.content else None
+        except requests.exceptions.RequestException as e:
+            raise APIError(f"Request failed: {str(e)}")
+
+class APIError(Exception):
+    """Custom exception for API-related errors"""
+    pass
 
 @dataclass
 class User:
-    """Represents a user in the learning platform"""
     user_name: str
     client: str
     user_courses: List[str] = field(default_factory=list)
     user_modules: List[str] = field(default_factory=list)
-    user_id: Optional[str] = None
+    _id: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert user to dictionary for API submission"""
-        return {
-            "user_name": self.user_name,
-            "client": self.client,
-            "user_courses": self.user_courses,
-            "user_modules": self.user_modules
-        }
+    def to_dict(self):
+        return {k: v for k, v in asdict(self).items() if v is not None}
 
 @dataclass
 class Question:
-    """Represents a question in the question bank"""
     question_content: str
     question_options: Dict[str, str]
     question_answer: str
@@ -32,248 +45,291 @@ class Question:
     module: str
     _id: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert question to dictionary for API submission"""
-        return {
-            "question_content": self.question_content,
-            "question_options": self.question_options,
-            "question_answer": self.question_answer,
-            "difficulty_rating": self.difficulty_rating,
-            "question_subjects": self.question_subjects,
-            "course": self.course,
-            "module": self.module
-        }
+    def to_dict(self):
+        return {k: v for k, v in asdict(self).items() if v is not None}
 
 @dataclass
 class Session:
-    """Represents a learning session (assessment or practice)"""
     user: str
-    client: str
     question_bank: str
-    question_list: List[Dict[str, Any]]
+    client: str
     dynamic: bool = False
-    max_score: int = 100
+    question_list: List[Dict[str, Any]] = field(default_factory=list)
+    started: Optional[datetime] = None
+    status: str = 'created'
     _id: Optional[str] = None
-    status: Optional[str] = None
-    total_score: Optional[float] = None
-    performance_score: Optional[float] = None
 
-class LearningPlatformClient:
-    """Main client for interacting with the learning platform API"""
+    def to_dict(self):
+        data = {k: v for k, v in asdict(self).items() if v is not None}
+        if isinstance(data.get('started'), datetime):
+            data['started'] = data['started'].isoformat()
+        return data
+
+class LearningPlatformSDK:
     def __init__(self, base_url: str):
-        """
-        Initialize the client with the base URL of the API
-        
-        Args:
-            base_url (str): Base URL of the API, e.g., 'http://localhost:8000'
-        """
-        self.base_url = base_url.rstrip('/')
+        self.client = APIClient(base_url)
 
+    # CLIENT MANAGEMENT
     def create_client(self, client_name: str) -> str:
         """Create a new client database"""
-        response = requests.post(f"{self.base_url}/clients/create", params={"client": client_name})
-        response.raise_for_status()
-        return response.json()
+        return self.client._make_request('POST', f'clients/create', params={'client': client_name})
 
     def delete_client(self, client_uuid: str) -> None:
         """Delete a client database"""
-        response = requests.post(f"{self.base_url}/{client_uuid}/delete")
-        response.raise_for_status()
+        self.client._make_request('POST', f'{client_uuid}/delete')
 
-    def create_user(self, user: User) -> str:
-        """
-        Create a user in a specific client database
-        
-        Args:
-            user (User): User object to create
-        
-        Returns:
-            str: Created user's UUID
-        """
-        response = requests.post(f"{self.base_url}/{user.client}/users/create", json=user.to_dict())
-        response.raise_for_status()
-        user_id = response.json()['user_uuid']
-        user.user_id = user_id
-        return user_id
+    # USER MANAGEMENT
+    def create_user(self, client: str, user: User) -> str:
+        """Create a user in a specific client database"""
+        response = self.client._make_request(
+            'POST', 
+            f'{client}/users/create', 
+            json=user.to_dict()
+        )
+        return response.get('user_uuid')
 
     def get_user(self, client: str, user_id: str) -> User:
         """Get user details"""
-        response = requests.get(f"{self.base_url}/{client}/users/{user_id}")
-        response.raise_for_status()
-        user_data = response.json()
-        return User(
-            user_name=user_data.get('user_name', ''),
-            client=client,
-            user_courses=user_data.get('user_courses', []),
-            user_modules=user_data.get('user_modules', []),
-            user_id=user_id
+        user_data = self.client._make_request('GET', f'{client}/users/{user_id}')
+        return User(**user_data)
+
+    def update_user(self, client: str, user_id: str, user: User) -> None:
+        """Update user's courses and modules"""
+        self.client._make_request(
+            'PUT', 
+            f'{client}/users/{user_id}', 
+            json={
+                'courses': user.user_courses, 
+                'modules': user.user_modules
+            }
         )
 
-    def update_user(self, user: User) -> None:
-        """Update user's courses and modules"""
-        if not user.user_id:
-            raise ValueError("User must have a user_id to update")
-        
-        data = {
-            "courses": user.user_courses,
-            "modules": user.user_modules
-        }
-        response = requests.put(f"{self.base_url}/{user.client}/users/{user.user_id}", json=data)
-        response.raise_for_status()
-
-    def delete_user(self, user: User) -> None:
+    def delete_user(self, client: str, user_id: str) -> None:
         """Delete a user"""
-        if not user.user_id:
-            raise ValueError("User must have a user_id to delete")
-        
-        response = requests.delete(f"{self.base_url}/{user.client}/users/{user.user_id}")
-        response.raise_for_status()
+        self.client._make_request('DELETE', f'{client}/users/{user_id}')
 
+    def get_user_upcoming(self, client: str, user_id: str) -> List[Dict]:
+        """Get user's upcoming cards"""
+        return self.client._make_request('GET', f'{client}/users/{user_id}/upcoming')
+
+    def get_user_assessments(self, client: str, user_id: str) -> List[Dict]:
+        """Get user's assessments"""
+        return self.client._make_request('GET', f'{client}/users/{user_id}/assessments')
+
+    def get_user_practice_sessions(self, client: str, user_id: str) -> List[Dict]:
+        """Get user's practice sessions"""
+        return self.client._make_request('GET', f'{client}/users/{user_id}/practice')
+
+    def get_user_sessions(self, client: str, user_id: str) -> List[Dict]:
+        """Get all user sessions"""
+        return self.client._make_request('GET', f'{client}/users/{user_id}/sessions')
+
+    # QUESTION BANK MANAGEMENT
     def create_question_bank(self, client: str, bank_name: str) -> str:
         """Create a blank question bank"""
-        response = requests.post(f"{self.base_url}/{client}/createbank", params={"bank": bank_name})
-        response.raise_for_status()
-        return response.json()
+        return self.client._make_request('POST', f'{client}/createbank', params={'bank': bank_name})
+
+    def get_all_banks(self, client: str) -> List[str]:
+        """Get all banks in a client database"""
+        return self.client._make_request('GET', f'{client}/banks')
+
+    def get_bank(self, client: str, bank: str) -> List[Question]:
+        """Get a complete question bank"""
+        bank_data = self.client._make_request('GET', f'{client}/{bank}')
+        return bank_data
+
+    def rename_bank(self, client: str, bank: str, new_name: str) -> None:
+        """Rename a question bank"""
+        self.client._make_request('PUT', f'{client}/{bank}', params={'newname': new_name})
+
+    def delete_bank(self, client: str, bank: str) -> None:
+        """Delete a question bank"""
+        self.client._make_request('DELETE', f'{client}/{bank}')
 
     def add_questions(self, client: str, bank: str, questions: List[Question]) -> List[str]:
         """Add questions to a bank"""
-        question_dicts = [q.to_dict() for q in questions]
-        response = requests.post(f"{self.base_url}/{client}/{bank}/add", json=question_dicts)
-        response.raise_for_status()
-        return response.json()
+        return self.client._make_request(
+            'POST', 
+            f'{client}/{bank}/add', 
+            json=[q.to_dict() for q in questions]
+        )
 
-    def search_questions(self, client: str, bank: str, 
-                         subjects: List[str] = None, 
-                         difficulty: List[str] = None, 
-                         course: List[str] = None, 
-                         module: List[str] = None) -> List[Question]:
-        """Search questions in a bank"""
-        query = {k: v for k, v in locals().items() if v is not None and k not in ['self', 'client', 'bank']}
-        response = requests.post(f"{self.base_url}/{client}/{bank}/search", json=query)
-        response.raise_for_status()
-        
-        questions = []
-        for q_data in response.json():
-            question = Question(
-                question_content=q_data['question_content'],
-                question_options=q_data['question_options'],
-                question_answer=q_data['question_answer'],
-                difficulty_rating=q_data['difficulty_rating'],
-                question_subjects=q_data['question_subjects'],
-                course=q_data['course'],
-                module=q_data['module'],
-                _id=q_data.get('_id')
+    def upload_bank(self, client: str, bank: str, file_path: str) -> str:
+        """Upload questions via Excel/CSV"""
+        with open(file_path, 'rb') as file:
+            files = {'file': file}
+            return self.client._make_request(
+                'POST', 
+                f'{client}/{bank}/upload', 
+                files=files
             )
-            questions.append(question)
-        
-        return questions
 
-    def create_assessment(self, session: Session) -> str:
+    def search_questions(
+        self, 
+        client: str, 
+        bank: str, 
+        subjects: Optional[List[str]] = None, 
+        difficulty: Optional[List[str]] = None, 
+        course: Optional[List[str]] = None, 
+        module: Optional[List[str]] = None
+    ) -> List[Question]:
+        """Search questions in a bank"""
+        query = {
+            'subjects': subjects,
+            'difficulty': difficulty,
+            'course': course,
+            'module': module
+        }
+        proquery={}
+        # Remove None values
+        print("pre")
+        print(query)
+        
+        keys = query.keys()
+        for i in keys:
+            if query[i] != None or query[i] != []:
+                proquery[i] = query[i]
+        
+        print("post")
+        print(proquery)
+
+        results = self.client._make_request(
+            'POST', 
+            f'{client}/{bank}/search', 
+            json=query
+        )
+        return [q for q in results]
+
+    def get_questions_by_id(self, client: str, bank: str, question_ids: List[str]) -> List[Question]:
+        """Get specific questions by ID"""
+        results = self.client._make_request(
+            'POST', 
+            f'{client}/{bank}/get', 
+            json={'id_list': question_ids}
+        )
+        return [Question(**q) for q in results]
+
+    def update_questions(self, client: str, bank: str, questions: List[Question]) -> None:
+        """Update questions in a bank"""
+        self.client._make_request(
+            'PUT', 
+            f'{client}/{bank}/update', 
+            json=[q.to_dict() for q in questions]
+        )
+
+    def move_questions(self, client: str, bank: str, question_ids: List[str], new_bank: str) -> None:
+        """Move questions between banks"""
+        self.client._make_request(
+            'PUT', 
+            f'{client}/{bank}/move', 
+            json={'id_list': question_ids, 'new_bank': new_bank}
+        )
+
+    def delete_questions(self, client: str, bank: str, question_ids: List[str]) -> None:
+        """Delete specific questions from a bank"""
+        self.client._make_request(
+            'DELETE', 
+            f'{client}/{bank}/delete', 
+            json={'id_list': question_ids}
+        )
+
+    # ASSESSMENT METHODS
+    def create_assessment(self, client: str, user_id: str, session: Session) -> str:
         """Create an assessment"""
-        response = requests.post(
-            f"{self.base_url}/{session.client}/assessment/{session.user}/create", 
-            json=session.__dict__
+        return self.client._make_request(
+            'POST', 
+            f'{client}/assessment/{user_id}/create', 
+            json=session.to_dict()
         )
-        response.raise_for_status()
-        session_id = response.json()
-        session._id = session_id
-        return session_id
 
-    def start_assessment(self, session: Session, shuffle: bool = False) -> List[Dict[str, Any]]:
+    def start_assessment(self, client: str, session_id: str, shuffle: bool = False) -> List[Dict]:
         """Start an assessment"""
-        if not session._id:
-            raise ValueError("Session must have an ID to start")
-        
-        response = requests.get(
-            f"{self.base_url}/{session.client}/assessment/{session._id}/start", 
-            params={"shuffle": shuffle}
+        return self.client._make_request(
+            'GET', 
+            f'{client}/assessment/{session_id}/start', 
+            params={'shuffle': shuffle}
         )
-        response.raise_for_status()
-        return response.json()
 
-    def submit_assessment(self, session: Session) -> Dict[str, Any]:
+    def submit_assessment(self, client: str, session_id: str, session: Session) -> Dict:
         """Submit an assessment"""
-        if not session._id:
-            raise ValueError("Session must have an ID to submit")
-        
-        response = requests.post(
-            f"{self.base_url}/{session.client}/assessment/{session._id}/submit", 
-            json=session.__dict__
+        return self.client._make_request(
+            'POST', 
+            f'{client}/assessment/{session_id}/submit', 
+            json=session.to_dict()
         )
-        response.raise_for_status()
-        return response.json()
 
-class LearningPlatform:
-    """Facade class to simplify interactions with the learning platform"""
-    def __init__(self, base_url: str):
-        """
-        Initialize the learning platform
-        
-        Args:
-            base_url (str): Base URL of the API
-        """
-        self.client = LearningPlatformClient(base_url)
-        self.current_client: Optional[str] = None
-        self.current_user: Optional[User] = None
-
-    def setup_client(self, client_name: str) -> str:
-        """
-        Set up a new client and store its UUID
-        
-        Args:
-            client_name (str): Name of the client to create
-        
-        Returns:
-            str: Created client's UUID
-        """
-        self.current_client = self.client.create_client(client_name)
-        return self.current_client
-
-    def register_user(self, user_name: str, courses: List[str] = None, modules: List[str] = None) -> User:
-        """
-        Register a new user
-        
-        Args:
-            user_name (str): Name of the user
-            courses (List[str], optional): List of course IDs
-            modules (List[str], optional): List of module IDs
-        
-        Returns:
-            User: Created user object
-        """
-        if not self.current_client:
-            raise ValueError("Must set up a client first")
-        
-        user = User(
-            user_name=user_name,
-            client=self.current_client,
-            user_courses=courses or [],
-            user_modules=modules or []
+    def dynamic_assessment_next(
+        self, 
+        client: str, 
+        session_id: str, 
+        question_id: str, 
+        answer_selection: str
+    ) -> Dict:
+        """Get next question in dynamic assessment"""
+        return self.client._make_request(
+            'POST', 
+            f'{client}/assessment/{session_id}/next', 
+            json={'question_id': question_id, 'answer_selection': answer_selection}
         )
-        self.client.create_user(user)
-        self.current_user = user
-        return user
 
-    def create_assessment_session(self, question_bank: str, dynamic: bool = False) -> Session:
-        """
-        Create an assessment session
-        
-        Args:
-            question_bank (str): Name of the question bank to use
-            dynamic (bool, optional): Whether to use dynamic assessment
-        
-        Returns:
-            Session: Created assessment session
-        """
-        if not self.current_client or not self.current_user:
-            raise ValueError("Must set up a client and user first")
-        
-        session = Session(
-            user=self.current_user.user_id,
-            client=self.current_client,
-            question_bank=question_bank,
-            question_list=[],
-            dynamic=dynamic
+    # PRACTICE SESSION METHODS
+    def create_practice(self, client: str, user_id: str, session: Session) -> str:
+        """Create a practice session"""
+        return self.client._make_request(
+            'POST', 
+            f'{client}/practice/{user_id}/create', 
+            json=session.to_dict()
         )
-        self.client.create_assessment(session)
-        return session
+
+    def start_practice(self, client: str, session_id: str) -> Dict:
+        """Start a practice session"""
+        return self.client._make_request('GET', f'{client}/practice/{session_id}/start')
+
+    def continue_practice(
+        self, 
+        client: str, 
+        session_id: str, 
+        answer_selection: str, 
+        difficulty_selection: int
+    ) -> Dict:
+        """Continue a practice session"""
+        return self.client._make_request(
+            'POST', 
+            f'{client}/practice/{session_id}/next', 
+            json={
+                'answer_selection': answer_selection, 
+                'answer_difficulty_selection': difficulty_selection
+            }
+        )
+
+# Example Usage
+def example_usage():
+    # Initialize the SDK
+    sdk = LearningPlatformSDK('http://localhost:8000')
+
+    # Create a client
+    client_uuid = sdk.create_client('my_learning_platform')
+
+    # Create a user
+    user = User(
+        user_name='john_doe', 
+        client=client_uuid, 
+        user_courses=['course1', 'course2'],
+        user_modules=['module1', 'module2']
+    )
+    user_id = sdk.create_user(client_uuid, user)
+
+    # Create a question bank
+    bank_name = sdk.create_question_bank(client_uuid, 'math_questions')
+
+    # Add a question to the bank
+    question = Question(
+        question_content='What is 2 + 2?',
+        question_options={'a': '3', 'b': '4', 'c': '5', 'd': '6'},
+        question_answer='b',
+        difficulty_rating='1',
+        question_subjects=['math', 'basic arithmetic'],
+        course='math101',
+        module='addition'
+    )
+    sdk.add_questions(client_uuid, bank_name, [question])
