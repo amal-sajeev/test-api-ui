@@ -2,7 +2,7 @@ import requests
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
-
+import pprint
 class APIClient:
     def __init__(self, base_url: str):
         """Base API client with common request handling"""
@@ -51,13 +51,10 @@ class Question:
 @dataclass
 class Session:
     user: str
-    question_bank: str
+    bank: str
     client: str
     dynamic: bool = False
     question_list: List[Dict[str, Any]] = field(default_factory=list)
-    started: Optional[datetime] = None
-    status: str = 'created'
-    _id: Optional[str] = None
 
     def to_dict(self):
         data = {k: v for k, v in asdict(self).items() if v is not None}
@@ -236,6 +233,7 @@ class LearningPlatformSDK:
     # ASSESSMENT METHODS
     def create_assessment(self, client: str, user_id: str, session: Session) -> str:
         """Create an assessment"""
+        pprint.pprint(session.to_dict())
         return self.client._make_request(
             'POST', 
             f'{client}/assessment/{user_id}/create', 

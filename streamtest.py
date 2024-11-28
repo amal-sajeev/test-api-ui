@@ -81,12 +81,12 @@ if st.session_state.user_id:
             colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
             for i in testwizard.get_user_assessments(client,st.session_state.user_id):
                 with st.container(key=i["_id"]):
-                    st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["average_score"]) )
+                    st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["score_average"]) )
                     st.write(datetime.fromisoformat(i["created"]).time())
                     st.write(f"Assigned: {i["created"]}")
                     st.write(f"Score: {i["total_score"]}/{i["answered"]}")
                     if i["answered"] == 0:
-                        if st.button("Start Assessment"):
+                        if st.button("Start Assessment", key=i["_id"]+"1"):
                             asession = wizard.Session()
                             asessionbank = testwizard.get_bank(client,)
                             asession.user = st.session_state.user_id
