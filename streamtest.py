@@ -15,7 +15,7 @@ client = "testertest"
 if 'user_id' not in st.session_state: 
     st.session_state.user_id = "" 
 if 'current_session' not in st.session_state:
-    st.session_state.current_session = ""
+    st.session_state.current_session = {}
 
 @st.dialog(title= "User Login", width="small")
 def user_login():
@@ -84,6 +84,7 @@ if st.session_state.user_id:
                     st.write(datetime.fromisoformat(i["created"]).time())
                     st.write(f"Assigned: {i["created"]}")
                     st.write(f"Score: {i["total_score"]}/{i["answered"]}")
+                    st.write(":rainbow-background[Dynamic]" if i["dynamic"] == True else ":grey-background[Static]")
                     if i["answered"] == 0:
                         if st.button("Start Assessment", key=i["_id"]+"1"):
                             controller.set("current_session", i)
