@@ -14,8 +14,8 @@ client = "testertest"
  
 if 'user_id' not in st.session_state: 
     st.session_state.user_id = "" 
-if 'session_id' not in st.session_state:
-    st.session_state.session_id = ""
+if 'current_session' not in st.session_state:
+    st.session_state.current_session = ""
 
 @st.dialog(title= "User Login", width="small")
 def user_login():
@@ -39,8 +39,9 @@ if st.session_state.user_id:
     with st.sidebar:
         st.title("Current User")
         st.code(st.session_state.user_id)
-        st.write("Current session:")
-        st.code(st.session_state.session_id)
+        if "_id" in st.session_state.current_session:
+            st.write("Current session:")
+            st.code(st.session_state.current_session["_id"])
         upcoming = testwizard.get_user_upcoming(client,st.session_state.user_id)
         st.write(f" {len(list(i for i in upcoming if i["due"]<0))} cards due, {len(list(i for i in upcoming if i["due"]>0))} upcoming today.")
         if st.button("Logout"):
@@ -69,8 +70,6 @@ if st.session_state.user_id:
 
     # DASHBOARD (MAIN SEGMENT) ====================================================================================
     st.title("Dashboard")
-
-
     assessments, practice = st.columns(2)
 
     with assessments:
@@ -87,18 +86,14 @@ if st.session_state.user_id:
                     st.write(f"Score: {i["total_score"]}/{i["answered"]}")
                     if i["answered"] == 0:
                         if st.button("Start Assessment", key=i["_id"]+"1"):
-                            asession = wizard.Session()
-                            asessionbank = testwizard.get_bank(client,)
-                            asession.user = st.session_state.user_id
-                            asession.question_bank = st.selectbox("Select question bank", list(i["names"] for i in banks))
-                            asession.client = client
-                            asession.dynamic = st.toggle("Make Session Dynamic?")
-                            asession.max_score = st.number_input("Maximum Score", 10)
-                            subjects = st.multiselect("Select subjects for the questions", asessjk   )
-                            assessor(client, st.session_state.user_id,i["_id"])
+                            controller.set("current_session", i)
+                            st.session_state.current_session = controller.get("current_session") 
+                            st.switch_page("pages/assessment.py")
 
 
     with practice:
+        if st.button("Create Practice Session"):
+            functions.create_practice(client, st.session_state.user_id, banks)
         with st.container(key = "Practice Sessions", border=True):
             st.subheader("Practice Sessions", anchor="practice")
             colour = lambda x : "rainbow" if x>50 else "green" if x>10 else "blue" if x>5 else "grey"

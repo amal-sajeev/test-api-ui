@@ -41,10 +41,11 @@ def create_assessment(client, user, banks):
                 else:
                     session_id = testwizard.create_assessment(client, user, asession)
                     st.toast("Assessment created succesfully! ID: "+session_id)
+                st.rerun()
 
 
 @st.dialog("New Practice Session")
-def create_assessment(client, user, banks):
+def create_practice(client, user, banks):
     asession = wizard.Session("","","")
     asession.user = user
     asession.bank = st.selectbox("Select question bank", list(i["name"] for i in banks), index = None)
@@ -52,8 +53,6 @@ def create_assessment(client, user, banks):
     if asession.bank:
         asessionbank = testwizard.get_bank(client, asession.bank)
         asession.client = client
-        asession.dynamic = st.toggle("Make Session Dynamic?")
-        asession.max_score = st.number_input("Maximum Score", 10)
         subjects = st.multiselect("Select subjects for the questions", asessionbank["subjects"])
         difficulty = st.multiselect("Select allowed difficulties", ["1",'2','3','4','5'])
         courses = st.multiselect("Select courses for the questions", asessionbank["courses"])
@@ -74,10 +73,11 @@ def create_assessment(client, user, banks):
             if st.button("Create"):
                 if selections:
                     if len(selections)==0:
-                        st.error("Either select questions for the assessment or turn off customization!",icon = "🛑")
+                        st.error("Either select questions for the practice session or turn off customization!",icon = "🛑")
                     else:
                         session_id = testwizard.create_assessment(client, user, asession)
-                        st.toast("Assessment created succesfully! ID: "+session_id)
+                        st.toast("Practice session created succesfully! ID: "+session_id)
                 else:
-                    session_id = testwizard.create_assessment(client, user, asession)
-                    st.toast("Assessment created succesfully! ID: "+session_id)
+                    session_id = testwizard.create_practice(client, user, asession)
+                    st.toast("Practice session created succesfully! ID: "+session_id)
+                st.rerun()
