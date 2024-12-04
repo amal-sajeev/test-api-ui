@@ -4,9 +4,6 @@ from streamlit_cookies_controller import CookieController
 import time
 from datetime import datetime
 
-if "current_question" not in st.session_state:
-    st.session_state.current_question = {}
-
 if st.session_state.current_session["dynamic"] == True:
     st.title(f"Executing Dynamic Assessment:")
 else:
@@ -44,7 +41,7 @@ def dynamic_assessment():
     # Ensure the current_question is initialized in session state if not already present
     if 'current_question' not in st.session_state:
         st.session_state.current_question = testwizard.start_assessment(client, st.session_state.current_session["_id"], True)
-    
+    st.write(st.session_state.current_question)
     # Display the current question
     st.write(st.session_state.current_question["question_content"])
     
@@ -62,8 +59,9 @@ def dynamic_assessment():
         if selection is not None:
             # Find the index of the selected option
             
-            selected_index = list(st.session_state.current_question["question_options"].values()).index(selection)
-            print(selected_index)
+            selected_index = list(st.session_state.current_question["question_options"].keys())[list(st.session_state.current_question["question_options"].values()).index(selection)]
+
+
             # Proceed to the next question
             st.session_state.current_question = testwizard.dynamic_assessment_next(
                 client, 

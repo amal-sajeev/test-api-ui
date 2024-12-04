@@ -83,9 +83,9 @@ if st.session_state.user_id:
                     st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["score_average"]) )
                     st.write(datetime.fromisoformat(i["created"]).time())
                     st.write(f"Assigned: {i["created"]}")
-                    st.write(f"Score: {i["total_score"]}/{i["answered"]}")
-                    st.write(":rainbow-background[Dynamic]" if i["dynamic"] == True else ":grey-background[Static]")
-                    if i["answered"] == 0:
+                    st.write(f"Score: {i["total_score"]}/{i["max_score"]}")
+                    st.write(":rainbow[Dynamic]" if i["dynamic"] == True else ":grey-background[Static]")
+                    if i["total_score"] < i["max_score"]:
                         if st.button("Start Assessment", key=i["_id"]+"1"):
                             controller.set("current_session", i)
                             st.session_state.current_session = controller.get("current_session") 

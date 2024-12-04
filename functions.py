@@ -5,7 +5,7 @@ testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):
-    asession = wizard.Session("","","")
+    asession = wizard.Session("","","","")
     asession.user = user
     asession.bank = st.selectbox("Select question bank", list(i["name"] for i in banks), index = None)
 
@@ -14,10 +14,10 @@ def create_assessment(client, user, banks):
         asession.client = client
         asession.dynamic = st.toggle("Make Session Dynamic?")
         asession.max_score = st.number_input("Maximum Score", 10)
-        subjects = st.multiselect("Select subjects for the questions", asessionbank["subjects"])
-        difficulty = st.multiselect("Select allowed difficulties", ["1",'2','3','4','5'])
         courses = st.multiselect("Select courses for the questions", asessionbank["courses"])
         modules = st.multiselect("Select modules for the questions", asessionbank["modules"])
+        subjects = st.multiselect("Select subjects for the questions", asessionbank["subjects"])
+        difficulty = st.multiselect("Select allowed difficulties", [1,2,3,4,5], default = [1,2,3,4,5])
         
         if courses:
             query_results = testwizard.search_questions(client, asession.bank, subjects, difficulty, courses, modules)

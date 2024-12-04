@@ -39,7 +39,7 @@ class Question:
     question_content: str
     question_options: Dict[str, str]
     question_answer: str
-    difficulty_rating: str
+    difficulty_rating: int
     question_subjects: List[str]
     course: str
     module: str
@@ -53,9 +53,10 @@ class Session:
     user: str
     bank: str
     client: str
+    max_score: int
     dynamic: bool = False
     question_list: List[Dict[str, Any]] = field(default_factory=list)
-
+    
     def to_dict(self):
         data = {k: v for k, v in asdict(self).items() if v is not None}
         if isinstance(data.get('started'), datetime):
