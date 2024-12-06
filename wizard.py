@@ -56,7 +56,9 @@ class Session:
     max_score: int
     dynamic: bool = False
     question_list: List[Dict[str, Any]] = field(default_factory=list)
-    
+    max_questions: int = None
+    starter_difficulty: int = 3
+
     def to_dict(self):
         data = {k: v for k, v in asdict(self).items() if v is not None}
         if isinstance(data.get('started'), datetime):
