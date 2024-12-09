@@ -41,9 +41,9 @@ if st.session_state.user_id:
         st.code(st.session_state.user_id)
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
-            st.code(st.session_state.current_session["_id"])
+            st.code(st.session_state.current_session['_id'])
         upcoming = testwizard.get_user_upcoming(client,st.session_state.user_id)
-        st.write(f" {len(list(i for i in upcoming if i["due"]<0))} cards due, {len(list(i for i in upcoming if i["due"]>0))} upcoming today.")
+        st.write(f" {len(list(i for i in upcoming if i['due']<0))} cards due, {len(list(i for i in upcoming if i['due']>0))} upcoming today.")
         if st.button("Logout"):
             logout()
         with st.container(height=300):
@@ -52,9 +52,9 @@ if st.session_state.user_id:
             banks = testwizard.get_all_banks(client)
             for i in banks:
                 with titles:
-                    st.write(i["name"])
+                    st.write(i['name'])
                 with count:
-                    st.write(i["question_count"])
+                    st.write(i['question_count'])
                 with update_butt:
                     st.button("View/Update", key=i)
 
@@ -79,29 +79,29 @@ if st.session_state.user_id:
             st.subheader("Assessments",anchor="assessments")
             colour = lambda x : "red" if x<0.5 and x>0.01 else "blue" if x>0.5 else "green" if x>0.8 else "rainbow" if x>0.9 else "grey"
             for i in testwizard.get_user_assessments(client,st.session_state.user_id):
-                with st.container(key=i["_id"]):
-                    st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["score_average"]) )
-                    st.write(datetime.fromisoformat(i["created"]).time())
-                    st.write(f"Assigned: {i["created"]}")
-                    st.write(f"Score: {i["total_score"]}/{i["max_score"]}")
-                    st.write(":rainbow[Dynamic]" if i["dynamic"] == True else ":grey-background[Static]")
-                    if i["total_score"] < i["max_score"]:
-                        if i["status"] == "Started":
-                            if st.button("Continue Assessment", key=i["_id"]+"1"):
+                with st.container(key=i['_id']):
+                    st.subheader(datetime.fromisoformat(i['created']).date(), divider= colour(i['score_average']) )
+                    st.write(datetime.fromisoformat(i['created']).time())
+                    st.write(f"Assigned: {i['created']}")
+                    st.write(f"Score: {i['total_score']}/{i['max_score']}")
+                    st.write(":rainbow[Dynamic]" if i['dynamic'] == True else ":grey-background[Static]")
+                    if i['total_score'] < i['max_score']:
+                        if i['status'] == "Started":
+                            if st.button("Continue Assessment", key=i['_id']+"1"):
                                 controller.set("current_session", i)
                                 st.session_state.current_session = controller.get("current_session") 
                                 if "current_question" in st.session_state:
                                     st.session_state.pop("current_question")
                                 st.switch_page("pages/assessment.py")
                         else:    
-                            if st.button("Start Assessment", key=i["_id"]+"1"):
+                            if st.button("Start Assessment", key=i['_id']+"1"):
                                 controller.set("current_session", i)
                                 st.session_state.current_session = controller.get("current_session") 
                                 if "current_question" in st.session_state:
                                     st.session_state.pop("current_question")
                                 st.switch_page("pages/assessment.py")
-                    if st.button("Delete assignment", key=f"delete {i["_id"]}"):
-                        st.toast(testwizard.delete_assessment(client,i["_id"]))
+                    if st.button("Delete assignment", key=f"delete {i['_id']}"):
+                        st.toast(testwizard.delete_assessment(client,i['_id']))
                         st.rerun()
 
 
@@ -112,8 +112,8 @@ if st.session_state.user_id:
             st.subheader("Practice Sessions", anchor="practice")
             colour = lambda x : "rainbow" if x>50 else "green" if x>10 else "blue" if x>5 else "grey"
             for i in testwizard.get_user_practice_sessions(client,st.session_state.user_id):
-                with st.container(key=i["_id"]):
-                    st.subheader(datetime.fromisoformat(i["created"]).date(), divider= colour(i["answered"]) )
-                    st.write(datetime.fromisoformat(i["created"]).time())
-                    st.write(f"Time taken: {i["time_taken"]}")
-                    st.write(f"Number of questions: {len(i["question_list"])}")
+                with st.container(key=i['_id']):
+                    st.subheader(datetime.fromisoformat(i['created']).date(), divider= colour(i['answered']) )
+                    st.write(datetime.fromisoformat(i['created']).time())
+                    st.write(f"Time taken: {i['time_taken']}")
+                    st.write(f"Number of questions: {len(i['question_list'])}")

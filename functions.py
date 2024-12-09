@@ -7,16 +7,16 @@ testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
 def create_assessment(client, user, banks):
     asession = wizard.Session("","","","")
     asession.user = user
-    asession.bank = st.selectbox("Select question bank", list(i["name"] for i in banks), index = None)
+    asession.bank = st.selectbox("Select question bank", list(i['name'] for i in banks), index = None)
 
     if asession.bank:
         asessionbank = testwizard.get_bank(client, asession.bank)
         asession.client = client
         asession.dynamic = st.toggle("Make Session Dynamic?")
         asession.max_score = st.number_input("Maximum Score", 10)
-        courses = st.multiselect("Select courses for the questions", asessionbank["courses"])
-        modules = st.multiselect("Select modules for the questions", asessionbank["modules"])
-        subjects = st.multiselect("Select subjects for the questions", asessionbank["subjects"])
+        courses = st.multiselect("Select courses for the questions", asessionbank['courses'])
+        modules = st.multiselect("Select modules for the questions", asessionbank['modules'])
+        subjects = st.multiselect("Select subjects for the questions", asessionbank['subjects'])
         asession.starter_difficulty = st.select_slider("Select a difficulty to begin the test with.", [1,2,3,4,5])
         difficulty = st.multiselect("Select allowed difficulties", [1,2,3,4,5], default = [1,2,3,4,5])
         
@@ -29,7 +29,7 @@ def create_assessment(client, user, banks):
             if st.toggle("Customize Question list"):
                     with st.container(height=200):
                         for i in query_results:
-                            if st.checkbox(i["question_content"], key = query_results.index(i) ):
+                            if st.checkbox(i['question_content'], key = query_results.index(i) ):
                                 selections.append(i)
             st.write(f"Number of Questions: {len(asession.question_list)}")
             asession.max_questions = st.select_slider("Maximum possible questions in the test.", range(len(asession.question_list)+1))
@@ -52,14 +52,14 @@ def create_assessment(client, user, banks):
 def create_practice(client, user, banks):
     asession = wizard.Session("","","","")
     asession.user = user
-    asession.bank = st.selectbox("Select question bank", list(i["name"] for i in banks), index = None)
+    asession.bank = st.selectbox("Select question bank", list(i['name'] for i in banks), index = None)
 
     if asession.bank:
         asessionbank = testwizard.get_bank(client, asession.bank)
         asession.client = client
-        courses = st.multiselect("Select courses for the questions", asessionbank["courses"])
-        modules = st.multiselect("Select modules for the questions", asessionbank["modules"])
-        subjects = st.multiselect("Select subjects for the questions", asessionbank["subjects"])
+        courses = st.multiselect("Select courses for the questions", asessionbank['courses'])
+        modules = st.multiselect("Select modules for the questions", asessionbank['modules'])
+        subjects = st.multiselect("Select subjects for the questions", asessionbank['subjects'])
         asession.starter_difficulty = st.select_slider("Select a difficulty to begin the test with.", [1,2,3,4,5])
         difficulty = st.multiselect("Select allowed difficulties", [1,2,3,4,5], default = [1,2,3,4,5])
         if courses:
@@ -71,7 +71,7 @@ def create_practice(client, user, banks):
             if st.toggle("Customize Question list"):
                     with st.container(height=200):
                         for i in query_results:
-                            if st.checkbox(i["question_content"], key = query_results.index(i) ):
+                            if st.checkbox(i['question_content'], key = query_results.index(i) ):
                                 selections.append(i)
             st.write(f"Number of Questions: {len(asession.question_list)}")
             asession.max_questions = st.select_slider("Maximum possible questions in the test.", range(len(asession.question_list)+1))
