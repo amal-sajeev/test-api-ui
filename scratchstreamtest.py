@@ -10,9 +10,6 @@ items = [
 selections=[]
 sorted_questions = []
 
-with st.container(height=200):
-    for i in items[0]["items"]:
-        if st.checkbox(i, key = items[0]["items"].index(i) ):
-            selections.append(i)
+ 
 
 st.write(selections)

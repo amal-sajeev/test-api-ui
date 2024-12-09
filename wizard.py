@@ -3,6 +3,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 import pprint
+import json
 class APIClient:
     def __init__(self, base_url: str):
         """Base API client with common request handling"""
@@ -251,13 +252,48 @@ class LearningPlatformSDK:
             params={'shuffle': shuffle}
         )
 
-    def submit_assessment(self, client: str, session_id: str, session: Session) -> Dict:
-        """Submit an assessment"""
-        return self.client._make_request(
-            'POST', 
-            f'{client}/assessment/{session_id}/submit', 
-            json=session.to_dict()
-        )
+    def submit_assessment(self, client: str, session_id: str, answers: List[Dict]) -> Dict:
+        """
+        Submit an assessment with improved error handling and payload validation.
+        
+        Args:
+            client (str): The client identifier
+            session_id (str): The session ID for the assessment
+            answers (List[Dict]): List of answer dictionaries to be submitted
+        
+        Returns:
+            Dict: Response from the API submission
+        """
+        try:
+            # Validate payload structure before sending
+            if not answers:
+                raise ValueError("Answers list cannot be empty")
+            
+            # Ensure each answer is a dictionary
+            for answer in answers:
+                if not isinstance(answer, dict):
+                    raise TypeError(f"Each answer must be a dictionary, got {type(answer)}")
+            
+            # Log the payload for debugging
+            print("Submitting assessment payload:")
+            print(json.dumps(answers, indent=2))
+            
+            # Explicitly specify JSON content type and convert to JSON
+            return self.client._make_request(
+                'POST', 
+                f'{client}/assessment/{session_id}/submit', 
+                json=answers,  # Use json parameter instead of data
+                headers={'Content-Type': 'application/json'}
+            )
+        
+        except (ValueError, TypeError) as validation_error:
+            # Log specific validation errors
+            print(f"Payload validation error: {validation_error}")
+            raise
+        except Exception as e:
+            # Catch and log any unexpected errors
+            print(f"Unexpected error during assessment submission: {e}")
+            raise
 
     def dynamic_assessment_next(
         self, 
@@ -272,6 +308,18 @@ class LearningPlatformSDK:
             f'{client}/assessment/{session_id}/next', 
             json={'question_id': question_id, 'answer_selection': answer_selection}
         )
+
+    def delete_assessment(
+        self,
+        client:str,
+        session_id: str
+    ) -> Dict:
+        """Delete Assessment Session."""
+        return self.client._make_request(
+            'DELETE',
+            f'{client}/assessment/{session_id}/delete'
+        )
+
 
     # PRACTICE SESSION METHODS
     def create_practice(self, client: str, user_id: str, session: Session) -> str:
@@ -301,6 +349,17 @@ class LearningPlatformSDK:
                 'answer_selection': answer_selection, 
                 'answer_difficulty_selection': difficulty_selection
             }
+        )
+
+    def delete_practice(
+        self,
+        client:str,
+        session_id: str
+    ) -> Dict:
+        """Delete Practice Session."""
+        return self.client._make_request(
+            'DELETE',
+            f'{client}/practice/{session_id}/delete'
         )
 
 # Example Usage

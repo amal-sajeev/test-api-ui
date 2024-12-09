@@ -100,6 +100,9 @@ if st.session_state.user_id:
                                 if "current_question" in st.session_state:
                                     st.session_state.pop("current_question")
                                 st.switch_page("pages/assessment.py")
+                    if st.button("Delete assignment", key=f"delete {i["_id"]}"):
+                        st.toast(testwizard.delete_assessment(client,i["_id"]))
+                        st.rerun()
 
 
     with practice:

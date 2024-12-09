@@ -25,30 +25,23 @@ if st.session_state.current_session:
         
 
 def dynamic_assessment():
-    # Ensure the current_question is initialized in session state if not already present
     if 'current_question' not in st.session_state:
         st.session_state.current_question = testwizard.start_assessment(client, st.session_state.current_session["_id"], True)
     if "message" not in st.session_state.current_question:
         st.write(st.session_state.current_question)
-        # Display the current question
         st.write(st.session_state.current_question["question_content"])
         
-        # Create a key for the radio to prevent automatic rerun
         selection = st.radio(
             "Select your answer", 
             options=st.session_state.current_question["question_options"].values(), 
             index=None, 
-            key="question_selection"  # Add a unique key
+            key="question_selection"  
         )
         
-        # Create a flag to track if the next button is clicked
         if st.button("Next", key="next_question_btn"):
-            # Ensure a selection is made before proceeding
             if selection is not None:
-                # Find the index of the selected option
                 
                 selected_index = list(st.session_state.current_question["question_options"].keys())[list(st.session_state.current_question["question_options"].values()).index(selection)]
-
 
                 # Proceed to the next question
                 st.session_state.current_question = testwizard.dynamic_assessment_next(
@@ -64,6 +57,38 @@ def dynamic_assessment():
         st.balloons()
         functions.results(st.session_state.current_question)
 
+def static_assessment():
+    st.session_state.current_question = testwizard.start_assessment(client,st.session_state.current_session["_id"])
+    with st.container(height=300):
+        st.write(st.session_state.current_question)
+    answers=[]
+    results= {}
+    with st.form("statassess"):
+        for i in st.session_state.current_question:
+            st.write(i["question_content"])
+            
+            option = st.radio(
+                "Select your answer", 
+                options=i["question_options"].values(), 
+                index=None, 
+                key="question_selection"+i["_id"]  
+                )
+            for z in i["question_options"].keys():
+                if option ==  i["question_options"][z]:
+                    option = z
+            answers.append({
+                "questionid" : i["_id"],
+                "option" : option if option else ""  
+            })
+            
+
+        if st.form_submit_button("Submit Assessment"):
+            results = testwizard.submit_assessment(client, st.session_state.current_session["_id"], answers)    
+    return(results)
+
 with st.container(border=True):
-    dynamic_assessment()
+    if st.session_state.current_session["dynamic"] == True:
+        dynamic_assessment()
+    else:
+        st.write(static_assessment())
         
