@@ -84,22 +84,29 @@ if st.session_state.user_id:
                     st.write(datetime.fromisoformat(i['created']).time())
                     st.write(f"Assigned: {i['created']}")
                     st.write(f"Score: {i['total_score']}/{i['max_score']}")
-                    st.write(":rainbow[Dynamic]" if i['dynamic'] == True else ":grey-background[Static]")
-                    if i['total_score'] < i['max_score']:
-                        if i['status'] == "Started":
-                            if st.button("Continue Assessment", key=i['_id']+"1"):
-                                controller.set("current_session", i)
-                                st.session_state.current_session = controller.get("current_session") 
-                                if "current_question" in st.session_state:
-                                    st.session_state.pop("current_question")
-                                st.switch_page("pages/assessment.py")
-                        else:    
-                            if st.button("Start Assessment", key=i['_id']+"1"):
-                                controller.set("current_session", i)
-                                st.session_state.current_session = controller.get("current_session") 
-                                if "current_question" in st.session_state:
-                                    st.session_state.pop("current_question")
-                                st.switch_page("pages/assessment.py")
+                    st.write(":rainbow-background[Dynamic]" if i['dynamic'] == True else ":grey-background[Static]")
+                    if i['status'] == "Started":
+                        if st.button("Continue Assessment", key=i['_id']+"1"):
+                            controller.set("current_session", i)
+                            st.session_state.current_session = controller.get("current_session") 
+                            if "current_question" in st.session_state:
+                                st.session_state.pop("current_question")
+                            st.switch_page("pages/assessment.py")
+                    elif i['status'] == "Finished":
+                        if  i["dynamic"] != True:
+                            st.write(f"Average: {i['score_average']}")
+                        else:
+                            st.write(f"Relative Score: {i['relative_score']}")
+                            st.write(f"Efficiency Score: {i['efficiency_score']}")
+                            st.write(f"Performance Score: {i['performance_score']}")
+                            
+                    else:    
+                        if st.button("Start Assessment", key=i['_id']+"1"):
+                            controller.set("current_session", i)
+                            st.session_state.current_session = controller.get("current_session") 
+                            if "current_question" in st.session_state:
+                                st.session_state.pop("current_question")
+                            st.switch_page("pages/assessment.py")
                     if st.button("Delete assignment", key=f"delete {i['_id']}"):
                         st.toast(testwizard.delete_assessment(client,i['_id']))
                         st.rerun()
