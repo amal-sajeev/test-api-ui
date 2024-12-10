@@ -57,11 +57,14 @@ def create_practice(client, user, banks):
     if asession.bank:
         asessionbank = testwizard.get_bank(client, asession.bank)
         asession.client = client
+        asession.dynamic = st.toggle("Make Session Dynamic?")
+        asession.max_score = st.number_input("Maximum Score", 10)
         courses = st.multiselect("Select courses for the questions", asessionbank['courses'])
         modules = st.multiselect("Select modules for the questions", asessionbank['modules'])
         subjects = st.multiselect("Select subjects for the questions", asessionbank['subjects'])
         asession.starter_difficulty = st.select_slider("Select a difficulty to begin the test with.", [1,2,3,4,5])
         difficulty = st.multiselect("Select allowed difficulties", [1,2,3,4,5], default = [1,2,3,4,5])
+        
         if courses:
             query_results = testwizard.search_questions(client, asession.bank, subjects, difficulty, courses, modules)
             
@@ -80,14 +83,15 @@ def create_practice(client, user, banks):
 
                 if selections:
                     if len(selections)==0:
-                        st.error("Either select questions for the assessment or turn off customization!",icon = "🛑")
+                        st.error("Either select questions for the practice session or turn off customization!",icon = "🛑")
                     else:
-                        session_id = testwizard.create_assessment(client, user, asession)
-                        st.toast("Assessment created succesfully! ID: "+session_id)
+                        session_id = testwizard.create_practice(client, user, asession)
+                        st.toast("Practice session created succesfully! ID: "+session_id)
                 else:
-                    session_id = testwizard.create_assessment(client, user, asession)
-                    st.toast("Assessment created succesfully! ID: "+session_id)
+                    session_id = testwizard.create_practice(client, user, asession)
+                    st.toast("Practice session created succesfully! ID: "+session_id)
                 st.rerun()
+
 
 @st.dialog("Congratulations")
 def results(results:dict):
