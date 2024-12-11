@@ -99,4 +99,6 @@ def results(results:dict):
     st.subheader("Here are your results:", divider=True)
     for i in results.keys():
         if i !="message":
-            st.write(f"{i} : {results[i]}")
+            nui = i.replace("_", " ")
+            nui = nui.title()
+            st.write(f"{nui} : {results[i]}")

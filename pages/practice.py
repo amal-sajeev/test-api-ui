@@ -49,7 +49,6 @@ def dynamic_practice():
 
                 sel_dif_index = dif_options.index(dif_selection)+1
 
-                print(sel_dif_index)
 
                 # Proceed to the next question
                 st.session_state.current_question = testwizard.continue_practice(
