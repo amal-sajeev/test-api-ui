@@ -6,9 +6,7 @@ from datetime import datetime
 import functions
 
 if st.session_state.current_session['dynamic'] == True:
-    st.title(f"Executing Dynamic Assessment:")
-else:
-    st.title("Executing Static Assessment:")
+    st.title(f"Executing Practice Session:")
 
 testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
 controller = CookieController() 
@@ -49,13 +47,16 @@ def dynamic_practice():
                 
                 selected_index = list(st.session_state.current_question['question_options'].keys())[list(st.session_state.current_question['question_options'].values()).index(selection)]
 
-                sel_dif_index = dif_options.index(dif_selection)
+                sel_dif_index = dif_options.index(dif_selection)+1
+
+                print(sel_dif_index)
 
                 # Proceed to the next question
                 st.session_state.current_question = testwizard.continue_practice(
-                    st.session_state.current_session['_id'], 
-                    st.session_state.current_question['_id'], 
-                    selected_index
+                    client,
+                    st.session_state.current_session['_id'],
+                    selected_index,
+                    sel_dif_index
                 )
                 st.rerun()
             else:
@@ -66,8 +67,5 @@ def dynamic_practice():
 
 
 with st.container(border=True):
-    if st.session_state.current_session['dynamic'] == True:
-        dynamic_assessment()
-    else:
-        st.write(static_assessment())
+    dynamic_practice()
         

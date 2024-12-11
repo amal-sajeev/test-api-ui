@@ -130,7 +130,7 @@ if st.session_state.user_id:
                             st.session_state.current_session = controller.get("current_session") 
                             if "current_question" in st.session_state:
                                 st.session_state.pop("current_question")
-                            st.switch_page("pages/assessment.py")
+                            st.switch_page("pages/practice.py")
                     elif i['status'] == "Finished":
                         if  i["dynamic"] != True:
                             st.write(f"Average: {i['score_average']}")
@@ -145,7 +145,7 @@ if st.session_state.user_id:
                             st.session_state.current_session = controller.get("current_session") 
                             if "current_question" in st.session_state:
                                 st.session_state.pop("current_question")
-                            st.switch_page("pages/assessment.py")
+                            st.switch_page("pages/practice.py")
                     if st.button("Delete assignment", key=f"delete {i['_id']}"):
                         st.toast(testwizard.delete_assessment(client,i['_id']))
                         st.rerun()
