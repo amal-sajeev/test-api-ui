@@ -126,9 +126,22 @@ class LearningPlatformSDK:
         return self.client._make_request('GET', f'{client}/users/{user_id}/sessions')
 
     # QUESTION BANK MANAGEMENT
-    def create_question_bank(self, client: str, bank_name: str) -> str:
+
+
+
+    def create_question_bank(self, client: str, bank_name: str, positive_weights: List[float], negative_weights: List[float]) -> str:
         """Create a blank question bank"""
-        return self.client._make_request('POST', f'{client}/createbank', params={'bank': bank_name})
+        print({
+            "name": bank_name,
+            "positive_weights": positive_weights,
+            "negative_weights": negative_weights,
+            "client": client})
+        return self.client._make_request('POST', f'{client}/createbank', json={
+            "name": bank_name,
+            "positive_weights": positive_weights,
+            "negative_weights": negative_weights,
+            "client": client
+        })
 
     def get_all_banks(self, client: str) -> List[str]:
         """Get all banks in a client database"""

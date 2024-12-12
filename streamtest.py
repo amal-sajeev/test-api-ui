@@ -46,8 +46,11 @@ if st.session_state.user_id:
         st.write(f" {len(list(i for i in upcoming if i['due']<0))} cards due, {len(list(i for i in upcoming if i['due']>0))} upcoming today.")
         if st.button("Logout"):
             logout()
+        
         with st.container(height=300):
             st.subheader("Question banks")
+            if st.button("Create Question Bank"):
+                functions.create_bank(client)     
             titles, count, update_butt = st.columns([3.5,1.5,5], vertical_alignment= "center")
             banks = testwizard.get_all_banks(client)
             for i in banks:
