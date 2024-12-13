@@ -1,20 +1,26 @@
 import streamlit as st
 import wizard
+import pandas as pd
 
-testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
+
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
 
 @st.dialog("Create Bank")
 def create_bank(client):
     positive_weights = [1, 1.5, 2, 2.5, 3]
     negative_weights = [0.75,1.25,1.75,2.25,2.75]
-
-    p1,p2,p3,p4,p5 = st.columns(5,vertical_alignment="center")
-    pcol = [p1,p2,p3,p4,p5]
-    n1,n2,n3,n4,n5 = st.columns(5,vertical_alignment="center")
-    ncol = [n1,n2,n3,n4,n5]
-    st.write("[OPTIONAL] Enter weights for each difficulty in your question bank.")
-    bankname = st.text_input("Name of the Question Bank:")
+    
+   
     with st.form("Bankmaker"):
+        bankname = st.text_input("Name of the Question Bank:")
+    
+        st.write("Enter weights for each difficulty in your question bank.")
+    
+        p1,p2,p3,p4,p5 = st.columns(5,vertical_alignment="center")
+        pcol = [p1,p2,p3,p4,p5]
+        n1,n2,n3,n4,n5 = st.columns(5,vertical_alignment="center")
+        ncol = [n1,n2,n3,n4,n5]
+        
         
         for i in range(5):
             with pcol[i]:
@@ -24,9 +30,19 @@ def create_bank(client):
             with pcol[i]:
                 negative_weights[i] =  st.number_input(str(i+1),value = negative_weights[i], key= f"nkey{i}")
         submitted = st.form_submit_button("Create Question Bank")
-        if submitted:
-            testwizard.create_question_bank(bank_name = bankname, positive_weights=positive_weights, negative_weights= negative_weights, client = client)
-            st.rerun()
+    if submitted:
+        testwizard.create_question_bank(bank_name = bankname, positive_weights=positive_weights, negative_weights= negative_weights, client = client)
+        st.rerun()
+
+
+@st.dialog("View and Update Question Bank")
+def bank_view(client, bank):
+    bank = testwizard.get_bank(client, bank)
+
+    edited_df = st.data_editor(pd.DataFrame.from_records(bank["question_list"])) 
+
+    st.write(edited_df.to_dict(orient="records"))
+    testwizard.update_questions(client, bank["name"], bank["question_list"])
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):

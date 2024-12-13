@@ -7,8 +7,12 @@ import functions
 
 if st.session_state.current_session['dynamic'] == True:
     st.title(f"Executing Practice Session:")
+if 'last_payload' not in st.session_state:
+    st.session_state.last_payload = {}
+if 'last_response' not in st.session_state:
+    st.session_state.last_response = {}
 
-testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -21,6 +25,16 @@ if st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
             st.header(":black-background[PRACTICE SESSION]")
+            setup_api = st.toggle("Use hosted api?", value= False)
+            if setup_api == True:
+                st.session_state.api = "https://stu.globalknowledgetech.com:8100"
+            else:
+                st.session_state.api = "http://localhost:8100"
+        st.write("Last API Request:")
+        st.write(st.session_state.last_payload )
+
+        st.write("Last API Response")
+        st.write(st.session_state.last_response)
 
 def dynamic_practice():
     if 'current_question' not in st.session_state:

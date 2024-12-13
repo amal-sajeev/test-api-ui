@@ -9,8 +9,12 @@ if st.session_state.current_session['dynamic'] == True:
     st.title(f"Executing Dynamic Assessment:")
 else:
     st.title("Executing Static Assessment:")
+if 'last_payload' not in st.session_state:
+    st.session_state.last_payload = {}
+if 'last_response' not in st.session_state:
+    st.session_state.last_response = {}
 
-testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -22,7 +26,11 @@ if st.session_state.current_session:
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
-        
+        st.write("Last API Request:")
+        st.write(st.session_state.last_payload )
+
+        st.write("Last API Response")
+        st.write(st.session_state.last_response)
 
 def dynamic_assessment():
     if 'current_question' not in st.session_state:

@@ -4,21 +4,72 @@ from dataclasses import dataclass, asdict, field
 from datetime import datetime
 import pprint
 import json
+import streamlit as st
+
 class APIClient:
     def __init__(self, base_url: str):
-        """Base API client with common request handling"""
+        """Base API client with common request handling and logging"""
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
 
+    def _log_request(self, method: str, full_url: str, **kwargs):
+        """Log request details to request.txt"""
+        
+        with open('prequest.txt' if method != "GET" else 'grequest.txt' , 'w') as f:
+            f.write(f"Method: {method}\n")
+            f.write(f"URL: {full_url}\n")
+            
+            # Log parameters
+            if 'params' in kwargs:
+                f.write("Parameters:\n")
+                f.write(json.dumps(kwargs['params'], indent=2) + "\n")
+            
+            # Log JSON payload
+            if 'json' in kwargs:
+                f.write("JSON Payload:\n")
+                f.write(json.dumps(kwargs['json'], indent=2) + "\n")
+            
+            # Log files if present
+            if 'files' in kwargs:
+                f.write("Files:\n")
+                f.write(str(kwargs['files']) + "\n")
+
+    def _log_response(self, method, response):
+        """Log response details to response.txt"""
+        with open('presponse.txt' if method != "GET" else 'gresponse.txt', 'w') as f:
+            f.write(f"Status Code: {response.status_code}\n")
+            f.write("Response Headers:\n")
+            for header, value in response.headers.items():
+                f.write(f"{header}: {value}\n")
+            
+            try:
+                # Try to parse and pretty print JSON response
+                response_json = response.json()
+                f.write("\nResponse Body (JSON):\n")
+                f.write(json.dumps(response_json, indent=2))
+            except ValueError:
+                # If not JSON, write raw text
+                f.write("\nResponse Body:\n")
+                f.write(response.text)
+
     def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
-        """Centralized request handling with error management"""
+        """Centralized request handling with error management and logging"""
         full_url = f"{self.base_url}/{endpoint}"
+        
+        # Log the request details before sending
+        self._log_request(method, full_url, **kwargs)
+        
         try:
             response = self.session.request(method, full_url, **kwargs)
+            
+            # Log the response details
+            self._log_response(method, response)
+            
             response.raise_for_status()
             return response.json() if response.content else None
         except requests.exceptions.RequestException as e:
             raise APIError(f"Request failed: {str(e)}")
+
 
 class APIError(Exception):
     """Custom exception for API-related errors"""
@@ -223,12 +274,12 @@ class LearningPlatformSDK:
         )
         return [Question(**q) for q in results]
 
-    def update_questions(self, client: str, bank: str, questions: List[Question]) -> None:
+    def update_questions(self, client: str, bank: str, questions: List) -> None:
         """Update questions in a bank"""
         self.client._make_request(
             'PUT', 
             f'{client}/{bank}/update', 
-            json=[q.to_dict() for q in questions]
+            json=[q for q in questions]
         )
 
     def move_questions(self, client: str, bank: str, question_ids: List[str], new_bank: str) -> None:
@@ -378,8 +429,8 @@ class LearningPlatformSDK:
 # Example Usage
 def example_usage():
     # Initialize the SDK
-    sdk = LearningPlatformSDK('http://localhost:8000')
-
+    sdk = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
+    
     # Create a client
     client_uuid = sdk.create_client('my_learning_platform')
 

@@ -6,7 +6,9 @@ from datetime import datetime
 from wizard import *
 import streamlit_sortables
 
-testwizard = wizard.LearningPlatformSDK("http://localhost:8100")
+
+
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -16,10 +18,19 @@ if 'user_id' not in st.session_state:
     st.session_state.user_id = "" 
 if 'current_session' not in st.session_state:
     st.session_state.current_session = {}
+if 'last_payload' not in st.session_state:
+    st.session_state.last_payload = {}
+if 'last_response' not in st.session_state:
+    st.session_state.last_response = {}
 
 @st.dialog(title= "User Login", width="small")
 def user_login():
     user_uuid = st.text_input("Enter your id!")
+    setup_api = st.toggle("Use hosted api?", value= False)
+    if setup_api == True:
+        st.session_state.api = "https://stu.globalknowledgetech.com:8100"
+    else:
+        st.session_state.api = "http://localhost:8100"
     if st.button("Submit"):
         controller.set("user", user_uuid)
         st.session_state.user_id = user_uuid 
@@ -39,6 +50,12 @@ if st.session_state.user_id:
     with st.sidebar:
         st.title("Current User")
         st.code(st.session_state.user_id)
+        setup_api = st.toggle("Use hosted api?", value= False)
+        if setup_api == True:
+            st.session_state.api = "https://stu.globalknowledgetech.com:8100"
+        else:
+            st.session_state.api = "http://localhost:8100"
+
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
@@ -59,7 +76,26 @@ if st.session_state.user_id:
                 with count:
                     st.write(i['question_count'])
                 with update_butt:
-                    st.button("View/Update", key=i)
+                    if st.button("View/Update", key=i):
+                        functions.bank_view(client, i['name'])
+        
+        with st.expander("View last non-GET Request and Response"):
+            st.write("Last Request")
+            with open("prequest.txt", 'r') as f:
+                st.code(f.read())
+
+            st.write("Last Response")
+            with open("presponse.txt", 'r') as f:
+                st.code(f.read())
+
+        with st.expander("View last GET Request"):
+            st.write("Last GET Request:")
+            with open('grequest.txt' , 'r') as f:
+                st.code( f.read() )
+
+            st.write("Last GET Request:")
+            with open('gresponse.txt' , 'r') as f:
+                st.code( f.read() )
 
 
     # ASSESSMENT SCREEN ===========================================================================================
