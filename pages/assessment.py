@@ -26,11 +26,23 @@ if st.session_state.current_session:
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
-        st.write("Last API Request:")
-        st.write(st.session_state.last_payload )
+        with st.expander("View last non-GET Request and Response"):
+            st.write("Last Request")
+            with open("prequest.txt", 'r') as f:
+                st.code(f.read())
 
-        st.write("Last API Response")
-        st.write(st.session_state.last_response)
+            st.write("Last Response")
+            with open("presponse.txt", 'r') as f:
+                st.code(f.read())
+
+        with st.expander("View last GET Request"):
+            st.write("Last GET Request:")
+            with open('grequest.txt' , 'r') as f:
+                st.code( f.read() )
+
+            st.write("Last GET Request:")
+            with open('gresponse.txt' , 'r') as f:
+                st.code( f.read() )
 
 def dynamic_assessment():
     if 'current_question' not in st.session_state:

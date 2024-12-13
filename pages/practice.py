@@ -30,11 +30,23 @@ if st.session_state.current_session:
                 st.session_state.api = "https://stu.globalknowledgetech.com:8100"
             else:
                 st.session_state.api = "http://localhost:8100"
-        st.write("Last API Request:")
-        st.write(st.session_state.last_payload )
+        with st.expander("View last non-GET Request and Response"):
+            st.write("Last Request")
+            with open("prequest.txt", 'r') as f:
+                st.code(f.read())
 
-        st.write("Last API Response")
-        st.write(st.session_state.last_response)
+            st.write("Last Response")
+            with open("presponse.txt", 'r') as f:
+                st.code(f.read())
+
+        with st.expander("View last GET Request"):
+            st.write("Last GET Request:")
+            with open('grequest.txt' , 'r') as f:
+                st.code( f.read() )
+
+            st.write("Last GET Request:")
+            with open('gresponse.txt' , 'r') as f:
+                st.code( f.read() )
 
 def dynamic_practice():
     if 'current_question' not in st.session_state:
