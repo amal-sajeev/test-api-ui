@@ -279,7 +279,7 @@ class LearningPlatformSDK:
         self.client._make_request(
             'PUT', 
             f'{client}/{bank}/update', 
-            json=[q for q in questions]
+            json={"questionlist":[q for q in questions]}
         )
 
     def move_questions(self, client: str, bank: str, question_ids: List[str], new_bank: str) -> None:

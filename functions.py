@@ -42,12 +42,14 @@ def create_bank(client):
 def bank_view(client, bank):
     testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
 
-    bank = testwizard.get_bank(client, bank)
+    with st.form("QuestionUpdate"):
+        bank = testwizard.get_bank(client, bank)
 
-    edited_df = st.data_editor(pd.DataFrame.from_records(bank["question_list"])) 
+        edited_df = st.data_editor(pd.DataFrame.from_records(bank["question_list"])) 
 
-    st.write(edited_df.to_dict(orient="records"))
-    testwizard.update_questions(client, bank["name"], bank["question_list"])
+        st.write(edited_df.to_dict(orient="records"))
+        if st.form_submit_button("Submit"):
+            testwizard.update_questions(client, bank["name"], bank["question_list"])
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):

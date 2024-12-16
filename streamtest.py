@@ -41,6 +41,8 @@ def user_login():
         time.sleep(0.1)
         st.rerun()
 
+
+
 def logout():
     controller.remove("user")
     st.rerun()
@@ -49,6 +51,7 @@ if "user" in cookies:
     st.session_state.user_id = controller.get("user")
 else:
     user_login()
+import functions
 
 if st.session_state.user_id:
     with st.sidebar:
@@ -101,7 +104,7 @@ if st.session_state.user_id:
             with open('gresponse.txt' , 'r') as f:
                 st.code( f.read() )
 
-    import functions
+    
 
     # ASSESSMENT SCREEN ===========================================================================================
 
