@@ -3,7 +3,7 @@ import wizard
 import pandas as pd
 
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
 
 @st.dialog("Create Bank")
 def create_bank(client):
@@ -73,7 +73,7 @@ def create_assessment(client, user, banks):
                             if st.checkbox(i['question_content'], key = query_results.index(i) ):
                                 selections.append(i)
             st.write(f"Number of Questions: {len(asession.question_list)}")
-            asession.max_questions = st.select_slider("Maximum possible questions in the test.", range(len(asession.question_list)+1))
+            asession.max_questions = st.select_slider("Maximum questions in the test. (0 means infinite until score is maximum.)", range(len(asession.question_list)+1))
             if st.button("Create"):
                 print(asession)
 
@@ -118,7 +118,7 @@ def create_practice(client, user, banks):
                             if st.checkbox(i['question_content'], key = query_results.index(i) ):
                                 selections.append(i)
             st.write(f"Number of Questions: {len(asession.question_list)}")
-            asession.max_questions = st.select_slider("Maximum possible questions in the test.", range(len(asession.question_list)+1))
+            asession.max_questions = st.select_slider("Maximum questions in the test. (0 means infinite until score is maximum.)", range(len(asession.question_list)+1))
             if st.button("Create"):
                 print(asession)
 

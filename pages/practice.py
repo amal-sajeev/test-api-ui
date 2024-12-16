@@ -12,7 +12,7 @@ if 'last_payload' not in st.session_state:
 if 'last_response' not in st.session_state:
     st.session_state.last_response = {}
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 

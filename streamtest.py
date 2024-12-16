@@ -8,7 +8,7 @@ import streamlit_sortables
 
 
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "http://localhost:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -149,6 +149,8 @@ if st.session_state.user_id:
                     if st.button("Delete assignment", key=f"delete {i['_id']}"):
                         st.toast(testwizard.delete_assessment(client,i['_id']))
                         st.rerun()
+                    st.pills("Subjects", i["primary_subjects"], disabled= True, key= i['_id']+'9')
+                    st.pills("Secondary", i["secondary_subjects"], disabled= True, key= i['_id']+'11')
 
 
     with practice:
