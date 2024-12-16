@@ -1,5 +1,5 @@
 import streamlit as st
-import wizard, functions
+import wizard
 from streamlit_cookies_controller import CookieController
 import time
 from datetime import datetime
@@ -23,16 +23,20 @@ if 'last_payload' not in st.session_state:
 if 'last_response' not in st.session_state:
     st.session_state.last_response = {}
 
+
+
 @st.dialog(title= "User Login", width="small")
 def user_login():
     user_uuid = st.text_input("Enter your id!")
-    setup_api = st.toggle("Use hosted api?", value= False)
+    setup_api = st.toggle("Use hosted api?", value= True)
     if setup_api == True:
         st.session_state.api = "https://stu.globalknowledgetech.com:8100"
     else:
         st.session_state.api = "http://localhost:8100"
+    st.code(st.session_state.api)
     if st.button("Submit"):
         controller.set("user", user_uuid)
+        controller.set("testerurl", st.session_state.api)
         st.session_state.user_id = user_uuid 
         time.sleep(0.1)
         st.rerun()
@@ -50,12 +54,12 @@ if st.session_state.user_id:
     with st.sidebar:
         st.title("Current User")
         st.code(st.session_state.user_id)
-        setup_api = st.toggle("Use hosted api?", value= False)
+        setup_api = st.toggle("Use hosted api?", value= True)
         if setup_api == True:
             st.session_state.api = "https://stu.globalknowledgetech.com:8100"
         else:
             st.session_state.api = "http://localhost:8100"
-
+        controller.set("testerurl", st.session_state.api)
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
@@ -97,6 +101,7 @@ if st.session_state.user_id:
             with open('gresponse.txt' , 'r') as f:
                 st.code( f.read() )
 
+    import functions
 
     # ASSESSMENT SCREEN ===========================================================================================
 

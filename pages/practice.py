@@ -4,7 +4,7 @@ from streamlit_cookies_controller import CookieController
 import time
 from datetime import datetime
 import functions
-
+controller = CookieController() 
 if st.session_state.current_session['dynamic'] == True:
     st.title(f"Executing Practice Session:")
 if 'last_payload' not in st.session_state:
@@ -12,7 +12,8 @@ if 'last_payload' not in st.session_state:
 if 'last_response' not in st.session_state:
     st.session_state.last_response = {}
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
+
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
 controller = CookieController() 
  
 cookies = controller.getAll() 
@@ -25,7 +26,7 @@ if st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
             st.header(":black-background[PRACTICE SESSION]")
-            setup_api = st.toggle("Use hosted api?", value= False)
+            setup_api = st.toggle("Use hosted api?", value= True)
             if setup_api == True:
                 st.session_state.api = "https://stu.globalknowledgetech.com:8100"
             else:

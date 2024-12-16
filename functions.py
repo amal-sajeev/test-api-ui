@@ -2,11 +2,14 @@ import streamlit as st
 import wizard
 import pandas as pd
 
+from streamlit_cookies_controller import CookieController
+controller = CookieController() 
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
 
 @st.dialog("Create Bank")
 def create_bank(client):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     positive_weights = [1, 1.5, 2, 2.5, 3]
     negative_weights = [0.75,1.25,1.75,2.25,2.75]
     
@@ -37,6 +40,8 @@ def create_bank(client):
 
 @st.dialog("View and Update Question Bank")
 def bank_view(client, bank):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     bank = testwizard.get_bank(client, bank)
 
     edited_df = st.data_editor(pd.DataFrame.from_records(bank["question_list"])) 
@@ -46,6 +51,8 @@ def bank_view(client, bank):
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     asession = wizard.Session("","","","")
     asession.user = user
     asession.bank = st.selectbox("Select question bank", list(i['name'] for i in banks), index = None)
@@ -91,6 +98,8 @@ def create_assessment(client, user, banks):
 
 @st.dialog("New Practice Session")
 def create_practice(client, user, banks):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     asession = wizard.Session("","","","")
     asession.user = user
     asession.bank = st.selectbox("Select question bank", list(i['name'] for i in banks), index = None)
@@ -136,6 +145,8 @@ def create_practice(client, user, banks):
 
 @st.dialog("Congratulations")
 def results(results:dict):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     st.title("You've finished!")
     st.subheader("Here are your results:", divider=True)
     for i in results.keys():

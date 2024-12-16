@@ -4,6 +4,7 @@ from streamlit_cookies_controller import CookieController
 import time
 from datetime import datetime
 import functions
+controller = CookieController() 
 
 if st.session_state.current_session['dynamic'] == True:
     st.title(f"Executing Dynamic Assessment:")
@@ -14,7 +15,7 @@ if 'last_payload' not in st.session_state:
 if 'last_response' not in st.session_state:
     st.session_state.last_response = {}
 
-testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
+testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
 controller = CookieController() 
  
 cookies = controller.getAll() 
