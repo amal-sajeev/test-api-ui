@@ -57,6 +57,8 @@ if st.session_state.user_id:
     with st.sidebar:
         st.title("Current User")
         st.code(st.session_state.user_id)
+        if st.button("Logout"):
+            logout()
         setup_api = st.toggle("Use hosted api?", value= True)
         if setup_api == True:
             st.session_state.api = "https://stu.globalknowledgetech.com:8100"
@@ -68,8 +70,7 @@ if st.session_state.user_id:
             st.code(st.session_state.current_session['_id'])
         upcoming = testwizard.get_user_upcoming(client,st.session_state.user_id)
         st.write(f" {len(list(i for i in upcoming if i['due']<0))} cards due, {len(list(i for i in upcoming if i['due']>0))} upcoming today.")
-        if st.button("Logout"):
-            logout()
+        
         
         with st.container(height=300):
             st.subheader("Question banks")

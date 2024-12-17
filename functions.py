@@ -74,28 +74,38 @@ def create_assessment(client, user, banks):
             query_results = testwizard.search_questions(client, asession.bank, subjects, difficulty, courses, modules)
             
             asession.question_list = query_results
-            selections = None
+            selections = []
             
             if st.toggle("Customize Question list"):
-                    with st.container(height=200):
-                        for i in query_results:
-                            if st.checkbox(i['question_content'], key = query_results.index(i) ):
+                custom = True
+                with st.container(height=200):
+                    for i in query_results:
+                        if st.checkbox(i['question_content'], key = query_results.index(i) ):
+                            if i not in selections:
                                 selections.append(i)
+                        elif i in selections:
+                            selections.pop(selections.index(i))
+                asession.question_list = selections
+            else:
+                custom = False
+                asession.question_list = query_results
             st.write(f"Number of Questions: {len(asession.question_list)}")
-            asession.max_questions = st.select_slider("Maximum questions in the test. (0 means infinite until score is maximum.)", range(len(asession.question_list)+1))
+            if len(asession.question_list) > 0:
+                asession.max_questions = st.select_slider("Maximum questions in the test. (0 means infinite until score is maximum.)", range(len(asession.question_list)+1))
             if st.button("Create"):
                 print(asession)
 
-                if selections:
+                if custom:
                     if len(selections)==0:
                         st.error("Either select questions for the assessment or turn off customization!",icon = "🛑")
                     else:
                         session_id = testwizard.create_assessment(client, user, asession)
                         st.toast("Assessment created succesfully! ID: "+session_id)
+                        st.rerun()
                 else:
                     session_id = testwizard.create_assessment(client, user, asession)
                     st.toast("Assessment created succesfully! ID: "+session_id)
-                st.rerun()
+                    st.rerun()
 
 
 @st.dialog("New Practice Session")
