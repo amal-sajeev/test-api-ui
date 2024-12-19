@@ -27,6 +27,8 @@ if st.session_state.current_session:
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
+        st.write("Current API:")
+        st.code(st.session_state.api)
         with st.expander("View last non-GET Request and Response"):
             st.write("Last Request")
             with open("prequest.txt", 'r') as f:

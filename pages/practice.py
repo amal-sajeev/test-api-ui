@@ -25,12 +25,9 @@ if st.session_state.current_session:
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
             st.code(st.session_state.current_session['_id'])
-            st.header(":black-background[PRACTICE SESSION]")
-            setup_api = st.toggle("Use hosted api?", value= True)
-            if setup_api == True:
-                st.session_state.api = "https://stu.globalknowledgetech.com:8100"
-            else:
-                st.session_state.api = "http://localhost:8100"
+            st.header("PRACTICE SESSION")
+        st.write("Current API:")
+        st.code(st.session_state.api)
         with st.expander("View last non-GET Request and Response"):
             st.write("Last Request")
             with open("prequest.txt", 'r') as f:

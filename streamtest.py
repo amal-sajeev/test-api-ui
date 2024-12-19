@@ -22,6 +22,8 @@ if 'last_payload' not in st.session_state:
     st.session_state.last_payload = {}
 if 'last_response' not in st.session_state:
     st.session_state.last_response = {}
+if 'api' not in st.session_state:
+    st.session_state.api = "https://stu.globalknowledgetech.com:8100"
 
 
 
@@ -59,11 +61,14 @@ if st.session_state.user_id:
         st.code(st.session_state.user_id)
         if st.button("Logout"):
             logout()
-        setup_api = st.toggle("Use hosted api?", value= True)
-        if setup_api == True:
-            st.session_state.api = "https://stu.globalknowledgetech.com:8100"
-        else:
-            st.session_state.api = "http://localhost:8100"
+        st.code(st.session_state.api)
+        if st.button("Switch between local and hosted API"):
+            if st.session_state.api == "https://stu.globalknowledgetech.com:8100":
+                st.session_state.api = "http://localhost:8100"            
+            else:
+                st.session_state.api = "https://stu.globalknowledgetech.com:8100"
+            st.rerun()
+        
         controller.set("testerurl", st.session_state.api)
         if "_id" in st.session_state.current_session:
             st.write("Current session:")
