@@ -1,6 +1,7 @@
 import streamlit as st
 import wizard
 import pandas as pd
+import json
 
 from streamlit_cookies_controller import CookieController
 controller = CookieController() 
@@ -45,11 +46,16 @@ def bank_view(client, bank):
     with st.form("QuestionUpdate"):
         bank = testwizard.get_bank(client, bank)
 
-        edited_df = st.data_editor(pd.DataFrame.from_records(bank["question_list"])) 
-
-        st.write(edited_df.to_dict(orient="records"))
+        edited_df = st.data_editor(pd.json_normalize(bank["question_list"])) 
+        nu_dict = edited_df.to_dict(orient="records")
+        for i in nu_dict:
+            i["question_options"] = {}
+            for j in ["a","b",'c','d']:
+                i["question_options"][j] = i[f"question_options.{j}"]
+                i.pop(f"question_options.{j}")
+        st.write(nu_dict)
         if st.form_submit_button("Submit"):
-            testwizard.update_questions(client, bank["name"], bank["question_list"])
+            testwizard.update_questions(client, bank["name"], nu_dict)
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):
