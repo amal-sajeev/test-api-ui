@@ -384,6 +384,25 @@ class LearningPlatformSDK:
             f'{client}/assessment/{session_id}/delete'
         )
 
+    # ASSESSMENT DRAFT ENDPOINTS
+    def create_draft(self, client:str, session: Session ) -> str:
+        """Create a assessment draft that can be assigned later."""
+        draftload = {
+            "users" : [session.user],
+            "bank": session.bank,
+            "client": session.client,
+            "question_list": session.question_list,
+            "dynamic": session.dynamic,
+            "max_score": session.max_score,
+            "max_questions" : session.max_questions,
+            "starter_difficulty" : session.starter_difficulty
+        }
+        return self.client._make_request(
+            'POST',
+            f'{client}/draft',
+            json = json.loads(draftload)
+        )
+
 
     # PRACTICE SESSION METHODS
     def create_practice(self, client: str, user_id: str, session: Session) -> str:
@@ -425,6 +444,8 @@ class LearningPlatformSDK:
             'DELETE',
             f'{client}/practice/{session_id}/delete'
         )
+
+
 
 # Example Usage
 def example_usage():
