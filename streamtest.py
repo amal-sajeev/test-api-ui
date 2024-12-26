@@ -7,6 +7,10 @@ from wizard import *
 import streamlit_sortables
 
 
+st.set_page_config(
+        page_title="Dynamic Testing API demo",
+)
+
 
 testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else "https://stu.globalknowledgetech.com:8100")
 controller = CookieController() 
@@ -81,13 +85,13 @@ if st.session_state.user_id:
             st.subheader("Question banks")
             if st.button("Create Question Bank"):
                 functions.create_bank(client)     
-            titles, count, update_butt = st.columns([3.5,1.5,5], vertical_alignment= "center")
+            titles, count, update_butt = st.columns([3.5,1.5,5], vertical_alignment= "bottom")
             banks = testwizard.get_all_banks(client)
             for i in banks:
                 with titles:
-                    st.write(i['name'])
+                    st.markdown(f"## {i['name']}")
                 with count:
-                    st.write(i['question_count'])
+                    st.write(f"## {i['question_count']}")
                 with update_butt:
                     if st.button("View/Update", key=i):
                         functions.bank_view(client, i['name'])

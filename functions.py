@@ -42,7 +42,7 @@ def create_bank(client):
 @st.dialog("View and Update Question Bank")
 def bank_view(client, bank):
     testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
-
+    st.title(bank)
     with st.form("QuestionUpdate"):
         bank = testwizard.get_bank(client, bank)
 
@@ -56,6 +56,9 @@ def bank_view(client, bank):
         st.write(nu_dict)
         if st.form_submit_button("Submit"):
             testwizard.update_questions(client, bank["name"], nu_dict)
+    if st.button("Delete Question Bank"):
+        testwizard.delete_bank(client, bank["name"])
+        st.rerun()
 
 @st.dialog("Create Assessment")
 def create_assessment(client, user, banks):
