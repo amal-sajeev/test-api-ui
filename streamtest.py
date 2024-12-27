@@ -86,7 +86,7 @@ if st.session_state.user_id:
             st.subheader("Question banks")
             if st.button("Create Question Bank"):
                 functions.create_bank(client)     
-            titles, count, update_butt = st.columns([3.5,1.5,5], vertical_alignment= "bottom")
+            titles, count, update_butt, delete_butt = st.columns([3.5,1.5,4,1], vertical_alignment= "bottom")
             banks = testwizard.get_all_banks(client)
             for i in banks:
                 with titles:
@@ -96,6 +96,9 @@ if st.session_state.user_id:
                 with update_butt:
                     if st.button("View/Update", key=i):
                         functions.bank_view(client, i['name'])
+                with delete_butt:
+                    if st.button("X", key = f"up{i}"):
+                        testwizard.delete_bank(client, i['name'])
         
         with st.expander("View last non-GET Request and Response"):
             st.write("Last Request")
@@ -213,3 +216,19 @@ if st.session_state.user_id:
                     st.pills("Subjects", i["primary_subjects"], disabled= True, key= i['_id']+'9')
                     with st.expander(label = "Secondary Subjects"):
                         st.pills("Secondary", i["secondary_subjects"], disabled= True, key= i['_id']+'11')
+
+    with drafts:
+        if st.button("Create Assessment Draft"):
+            functions.create_draft(client, banks)
+        with st.container(key = "Draft Sessions", border = True):
+            st.subheader("Drafts", anchor = "drafts")
+            drafts = testwizard.get_all_drafts(client)
+            for i in drafts:
+                with st.container(key = i["_id"]):
+                    st.code(i["_id"])
+                    st.pills("Users to Assign to:", i["users"])
+                    st.write(f"Number of questions: {len(i['question_list'])}")
+                    st.write(f"Courses Covered: {i['courses']}")
+                    st.write(f"Modules Covered: {i['modules']}")
+                    # if st.button("Assign to users."):
+                    #     testwizard.

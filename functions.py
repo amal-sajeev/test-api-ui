@@ -1,7 +1,8 @@
 import streamlit as st
 import wizard
+from wizard import *
 import pandas as pd
-import json
+import json,pprint
 
 from streamlit_cookies_controller import CookieController
 controller = CookieController() 
@@ -94,7 +95,7 @@ def create_assessment(client, user, banks):
                                 selections.append(i)
                         elif i in selections:
                             selections.pop(selections.index(i))
-                asession.question_list = selections
+                
             else:
                 custom = False
                 asession.question_list = query_results
@@ -108,6 +109,7 @@ def create_assessment(client, user, banks):
                     if len(selections)==0:
                         st.error("Either select questions for the assessment or turn off customization!",icon = "🛑")
                     else:
+                        asession.question_list = selections
                         session_id = testwizard.create_assessment(client, user, asession)
                         st.toast("Assessment created succesfully! ID: "+session_id)
                         st.rerun()
@@ -162,6 +164,55 @@ def create_practice(client, user, banks):
                     session_id = testwizard.create_practice(client, user, asession)
                     st.toast("Practice session created succesfully! ID: "+session_id)
                 st.rerun()
+
+
+@st.dialog("Create Draft")
+def create_draft(client, banks):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+    st.title("Create an Assessment Draft")
+    userlist  = testwizard.get_user_list(client)
+    nudraft = wizard.Draft([],"","",0)
+    nudraft.users  = st.multiselect("Users to assign to:", options = [i["user_name"] for i in userlist])
+    # for i in userlist:
+    #     if i["user_name"] in namelist:
+    #         nudraft.users = i["_id"]
+    nudraft.bank = st.selectbox("Question Bank", options = [i['name'] for i in banks])
+    nudraft.client = client
+    nudraft.dynamic = st.toggle("Make Assessment Dynamic?")
+    nudraftbank = testwizard.get_bank(client, nudraft.bank)
+    courses = st.multiselect("Select courses for the questions", nudraftbank['courses'])
+    modules = st.multiselect("Select modules for the questions", nudraftbank['modules'])
+    subjects = st.multiselect("Select subjects for the questions", nudraftbank['subjects'])
+    nudraft.starter_difficulty = st.select_slider("Select a difficulty to begin the test with.", [1,2,3,4,5])
+    difficulty = st.multiselect("Select allowed difficulties", [1,2,3,4,5], default = [1,2,3,4,5])
+    
+    if courses:
+        query_results = testwizard.search_questions(client, nudraft.bank, subjects, difficulty, courses, modules)
+        print(query_results)
+        nudraft.question_list = query_results
+        selections = None
+        
+        if st.toggle("Customize Question list"):
+                with st.container(height=200):
+                    for i in query_results:
+                        if st.checkbox(i['question_content'], key = query_results.index(i) ):
+                            selections.append(i)
+        st.write(f"Number of Questions: {len(nudraft.question_list)}")
+        nudraft.max_questions = st.select_slider("Maximum questions in the test. (0 means infinite until score is maximum.)", range(len(nudraft.question_list)+1))
+        if st.button("Create Draft"):
+            pprint.pprint(nudraft.to_dict())
+            if selections:
+                if len(selections)==0:
+                    st.error("Either select questions for the draft or turn off customization!",icon = "🛑")
+                else:
+                    nudraft.question_list = selections
+                    session_id = testwizard.create_draft(client, nudraft)
+                    st.toast("Draft created succesfully! ID: "+session_id)
+            else:
+                session_id = testwizard.create_draft(client, nudraft)
+                st.toast("Draft created succesfully! ID: "+session_id)
+            st.rerun()
+
 
 
 @st.dialog("Congratulations")

@@ -117,6 +117,21 @@ class Session:
             data['started'] = data['started'].isoformat()
         return data
 
+@dataclass
+class Draft:
+    users: List[str]
+    bank: str
+    client: str
+    max_score: int
+    dynamic: bool = False
+    question_list: List[Dict[str, Any]] = field(default_factory=list)
+    max_questions: int = None
+    starter_difficulty: int = 3
+
+    def to_dict(self):
+        data = {k: v for k, v in asdict(self).items() if v is not None}
+        return data
+
 class LearningPlatformSDK:
     def __init__(self, base_url: str):
         self.client = APIClient(base_url)
@@ -144,6 +159,10 @@ class LearningPlatformSDK:
         """Get user details"""
         user_data = self.client._make_request('GET', f'{client}/users/{user_id}')
         return User(**user_data)
+
+    def get_user_list(self, client:str, courses: List[str] = [], modules: List[str] = []):
+        """Get list of users"""
+        return(self.client._make_request("POST", f'{client}/users', json = {"courses": courses, "modules": modules}))
 
     def update_user(self, client: str, user_id: str, user: User) -> None:
         """Update user's courses and modules"""
@@ -385,20 +404,7 @@ class LearningPlatformSDK:
             f'{client}/assessment/{session_id}/delete'
         )
 
-    @dataclass
-    class Draft:
-        users: List[str]
-        bank: str
-        client: str
-        max_score: int
-        dynamic: bool = False
-        question_list: List[Dict[str, Any]] = field(default_factory=list)
-        max_questions: int = None
-        starter_difficulty: int = 3
 
-    def to_dict(self):
-        data = {k: v for k, v in asdict(self).items() if v is not None}
-        return data
 
     # ASSESSMENT DRAFT ENDPOINTS
     def create_draft(self, client:str, draft: Draft ) -> str:
@@ -417,10 +423,10 @@ class LearningPlatformSDK:
         return self.client._make_request(
             'POST',
             f'{client}/draft',
-            json = json.loads(draftload)
+            json = draftload
         )
 
-    def get_all_drafts(self, client:str) -> dict:
+    def get_all_drafts(self, client:str) -> dict:   
         """Get all drafts in a client's history"""
         return self.client._make_request(
             "GET",
