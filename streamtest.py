@@ -9,6 +9,7 @@ import streamlit_sortables
 
 st.set_page_config(
         page_title="Dynamic Testing API demo",
+        layout = "wide"
 )
 
 
@@ -127,7 +128,7 @@ if st.session_state.user_id:
 
     # DASHBOARD (MAIN SEGMENT) ====================================================================================
     st.title("Dashboard")
-    assessments, practice = st.columns(2)
+    assessments, practice, drafts = st.columns(3)
 
     with assessments:
         if st.button("Create Assessment"):

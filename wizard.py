@@ -1,5 +1,5 @@
 import requests
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Union, Optional
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
 import pprint
@@ -102,7 +102,7 @@ class Question:
 
 @dataclass
 class Session:
-    user: str
+    user: Union[str, List[str]]
     bank: str
     client: str
     max_score: int
@@ -359,6 +359,7 @@ class LearningPlatformSDK:
             print(f"Unexpected error during assessment submission: {e}")
             raise
 
+
     def dynamic_assessment_next(
         self, 
         client: str, 
@@ -384,25 +385,69 @@ class LearningPlatformSDK:
             f'{client}/assessment/{session_id}/delete'
         )
 
+    @dataclass
+    class Draft:
+        users: List[str]
+        bank: str
+        client: str
+        max_score: int
+        dynamic: bool = False
+        question_list: List[Dict[str, Any]] = field(default_factory=list)
+        max_questions: int = None
+        starter_difficulty: int = 3
+
+    def to_dict(self):
+        data = {k: v for k, v in asdict(self).items() if v is not None}
+        return data
+
     # ASSESSMENT DRAFT ENDPOINTS
-    def create_draft(self, client:str, session: Session ) -> str:
+    def create_draft(self, client:str, draft: Draft ) -> str:
         """Create a assessment draft that can be assigned later."""
-        draftload = {
-            "users" : [session.user],
-            "bank": session.bank,
-            "client": session.client,
-            "question_list": session.question_list,
-            "dynamic": session.dynamic,
-            "max_score": session.max_score,
-            "max_questions" : session.max_questions,
-            "starter_difficulty" : session.starter_difficulty
-        }
+        # draftload = {
+        #     "users" : [session.user],
+        #     "bank": session.bank,
+        #     "client": session.client,
+        #     "question_list": session.question_list,
+        #     "dynamic": session.dynamic,
+        #     "max_score": session.max_score,
+        #     "max_questions" : session.max_questions,
+        #     "starter_difficulty" : session.starter_difficulty
+        # }
+        draftload = draft.to_dict()
         return self.client._make_request(
             'POST',
             f'{client}/draft',
             json = json.loads(draftload)
         )
 
+    def get_all_drafts(self, client:str) -> dict:
+        """Get all drafts in a client's history"""
+        return self.client._make_request(
+            "GET",
+            f'{client}/drafts/all'
+        )
+    
+    def delete_draft(self,client:str, draft_id:str):
+        """Delete a draft"""
+        return self.client._make_request(
+            "DELETE",
+            f"{client}/draft/{draft_id}"
+        )
+
+    def update_draft(self,client:str, draft_id: str, nudraft: Draft):
+        """Update a draft"""
+        return self.client._make_request(
+            "PUT",
+            f"{client}/draft/{draft_id}",
+            json = {nudraft.to_dict()}
+        )
+
+    def get_draft(self, client:str, draft_id: str):
+        """Get details of one draft"""
+        return self.client._make_request(
+            "GET",
+            f"{client}/draft/{draft_id}"
+        )
 
     # PRACTICE SESSION METHODS
     def create_practice(self, client: str, user_id: str, session: Session) -> str:
