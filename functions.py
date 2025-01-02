@@ -173,9 +173,10 @@ def create_draft(client, banks):
     userlist  = testwizard.get_user_list(client)
     nudraft = wizard.Draft([],"","",0)
     nudraft.users  = st.multiselect("Users to assign to:", options = [i["user_name"] for i in userlist])
-    # for i in userlist:
-    #     if i["user_name"] in namelist:
-    #         nudraft.users = i["_id"]
+    for i in userlist:
+        if i["user_name"] in nudraft.users:
+            nudraft.users.pop(i["user_name"])
+            nudraft.users.append(i["_id"])
     nudraft.bank = st.selectbox("Question Bank", options = [i['name'] for i in banks])
     nudraft.client = client
     nudraft.dynamic = st.toggle("Make Assessment Dynamic?")
@@ -213,7 +214,13 @@ def create_draft(client, banks):
                 st.toast("Draft created succesfully! ID: "+session_id)
             st.rerun()
 
+@st.dialog("Assign draft")
+def assign_drafts(draft, client):
+    st.title(draft["_id"])
+    userlist  = testwizard.get_user_list(client)
 
+    nulist = st.multiselect("[OPTIONAL] Add or Remove Users to assign to:", options = [i["user_name"] for i in userlist], default=[i["user_name"] for i in userlist if i["_id"] in draft["users"] ])
+    userlist = st.multiselect()
 
 @st.dialog("Congratulations")
 def results(results:dict):

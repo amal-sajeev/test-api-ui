@@ -455,6 +455,15 @@ class LearningPlatformSDK:
             f"{client}/draft/{draft_id}"
         )
 
+    def assign_drafts(self, client:str, draft_id:str, userlist:List[str]=[]):
+        """Assign drafts to users"""
+        
+        return self.client._make_request(
+            "POST",
+            f"{client}/draft/{draft_id}/",
+            json = {"userlist": userlist}
+        )
+
     # PRACTICE SESSION METHODS
     def create_practice(self, client: str, user_id: str, session: Session) -> str:
         """Create a practice session"""

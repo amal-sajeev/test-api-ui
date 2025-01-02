@@ -230,5 +230,6 @@ if st.session_state.user_id:
                     st.write(f"Number of questions: {len(i['question_list'])}")
                     st.write(f"Courses Covered: {i['courses']}")
                     st.write(f"Modules Covered: {i['modules']}")
+                    st.write(":rainbow-background[Dynamic]" if i['dynamic'] == True else ":grey-background[Static]")
                     # if st.button("Assign to users."):
                     #     testwizard.
