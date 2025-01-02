@@ -175,7 +175,7 @@ def create_draft(client, banks):
     nudraft.users  = st.multiselect("Users to assign to:", options = [i["user_name"] for i in userlist])
     for i in userlist:
         if i["user_name"] in nudraft.users:
-            nudraft.users.pop(i["user_name"])
+            nudraft.users.pop(nudraft.users.index(i["user_name"]))
             nudraft.users.append(i["_id"])
     nudraft.bank = st.selectbox("Question Bank", options = [i['name'] for i in banks])
     nudraft.client = client
@@ -216,11 +216,18 @@ def create_draft(client, banks):
 
 @st.dialog("Assign draft")
 def assign_drafts(draft, client):
+    testwizard = wizard.LearningPlatformSDK( st.session_state.api if "api" in st.session_state else controller.get("testerurl"))
+
     st.title(draft["_id"])
     userlist  = testwizard.get_user_list(client)
+    if st.toggle("Customize User List", value = False):
+        nulist = st.multiselect("[OPTIONAL] Add or Remove Users to assign to:", options = [i["user_name"] for i in userlist], default=[i["user_name"] for i in userlist if i["_id"] in  draft["users"]])
+    else:
+        nulist = draft["users"]
+        st.pills("Assigning to users:", options = [i["user_name"] for i in userlist if i["_id"] in draft["users"]], key = draft["_id"]+"1")
+    if st.button("Assign to Users"):
+        testwizard.assign_drafts(client, draft["_id"], userlist = nulist)
 
-    nulist = st.multiselect("[OPTIONAL] Add or Remove Users to assign to:", options = [i["user_name"] for i in userlist], default=[i["user_name"] for i in userlist if i["_id"] in draft["users"] ])
-    userlist = st.multiselect()
 
 @st.dialog("Congratulations")
 def results(results:dict):

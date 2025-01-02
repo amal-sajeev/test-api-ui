@@ -460,7 +460,7 @@ class LearningPlatformSDK:
         
         return self.client._make_request(
             "POST",
-            f"{client}/draft/{draft_id}/",
+            f"{client}/draft/{draft_id}/assign",
             json = {"userlist": userlist}
         )
 
