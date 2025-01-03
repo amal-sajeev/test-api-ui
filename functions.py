@@ -3,6 +3,7 @@ import wizard
 from wizard import *
 import pandas as pd
 import json,pprint
+import time
 
 from streamlit_cookies_controller import CookieController
 controller = CookieController() 
@@ -226,7 +227,10 @@ def assign_drafts(draft, client):
         nulist = draft["users"]
         st.pills("Assigning to users:", options = [i["user_name"] for i in userlist if i["_id"] in draft["users"]], key = draft["_id"]+"1")
     if st.button("Assign to Users"):
-        testwizard.assign_drafts(client, draft["_id"], userlist = nulist)
+        idlist = testwizard.assign_drafts(client, draft["_id"], userlist = nulist)
+        st.toast(f"Assessments created: {idlist}")
+        time.sleep(3)
+        st.rerun()
 
 
 @st.dialog("Congratulations")

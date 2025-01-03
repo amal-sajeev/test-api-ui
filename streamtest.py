@@ -61,6 +61,7 @@ else:
 import functions
 
 if st.session_state.user_id:
+    userlist  = testwizard.get_user_list(client)
     with st.sidebar:
         st.title("Current User")
         st.code(st.session_state.user_id)
@@ -226,7 +227,7 @@ if st.session_state.user_id:
             for i in drafts:
                 with st.container(key = i["_id"]):
                     st.code(i["_id"])
-                    st.pills("Users to Assign to:", i["users"])
+                    st.pills("Users to Assign to:", [j["user_name"] for j in userlist if j["_id"] in i["users"]])
                     st.write(f"Number of questions: {len(i['question_list'])}")
                     st.write(f"Courses Covered: {i['courses']}")
                     st.write(f"Modules Covered: {i['modules']}")
